@@ -159,7 +159,7 @@ FORMAT JSON OBLIGATOIRE (réponds exactement comme ça):
 IMPORTANT: Réponds UNIQUEMENT avec le JSON, sans \`\`\`json ni texte avant/après.`;
 
         const requestData = {
-            model: 'gpt-4o',
+            model: 'gpt-5o',
             messages: [
                 {
                     role: 'system',
@@ -318,7 +318,7 @@ INSTRUCTIONS:
 - Sois direct et utile`;
 
         const requestData = {
-            model: 'gpt-4',
+            model: 'gpt-5o',
             messages: [
                 {
                     role: 'system',
@@ -408,7 +408,12 @@ app.post('/api/chat', async (req, res) => {
 });
 
 app.get('/api/test', (req, res) => {
-    res.json({ message: 'API TotoTravo fonctionne!' });
+    res.json({ 
+        message: 'API TotoTravo fonctionne!',
+        timestamp: new Date().toISOString(),
+        environment: process.env.NODE_ENV || 'development',
+        port: PORT
+    });
 });
 
 // Gestion d'erreurs globale
@@ -431,14 +436,13 @@ app.get('/api/health', (req, res) => {
 });
 
 // Démarrage du serveur
-if (process.env.NODE_ENV !== 'production') {
-    app.listen(PORT, () => {
-        console.log('🔑 Configuration:');
-        console.log('   OPENAI_API_KEY:', OPENAI_API_KEY.substring(0, 20) + '...');
-        console.log('   PORT:', PORT);
-        console.log('🚀 Serveur démarré sur http://localhost:' + PORT);
-    });
-}
+app.listen(PORT, () => {
+    console.log('🔑 Configuration:');
+    console.log('   OPENAI_API_KEY:', OPENAI_API_KEY.substring(0, 20) + '...');
+    console.log('   PORT:', PORT);
+    console.log('🚀 Serveur démarré sur http://localhost:' + PORT);
+    console.log('🌍 Environnement:', process.env.NODE_ENV || 'development');
+});
 
 // Export pour Vercel
 module.exports = app;
