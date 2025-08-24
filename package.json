@@ -7,12 +7,14 @@
     "start": "node server.js",
     "dev": "nodemon server.js",
     "build": "echo 'Build completed'",
-    "vercel-build": "echo 'Vercel build completed'"
+    "vercel-build": "echo 'Vercel build completed'",
+    "render-build": "npm install"
   },
   "keywords": [
     "renovation",
     "ia",
-    "deepseek",
+    "openai",
+    "gpt-5",
     "estimation",
     "travaux",
     "bricolage",
@@ -31,14 +33,14 @@
     "nodemon": "^3.0.1"
   },
   "engines": {
-    "node": ">=16.0.0"
+    "node": ">=18.0.0"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/votre-username/tototravo.git"
+    "url": "https://github.com/PatateBolognaise/TotoTravo.git"
   },
   "bugs": {
-    "url": "https://github.com/votre-username/tototravo/issues"
+    "url": "https://github.com/PatateBolognaise/TotoTravo/issues"
   },
-  "homepage": "https://github.com/votre-username/tototravo#readme"
+  "homepage": "https://github.com/PatateBolognaise/TotoTravo#readme"
 }

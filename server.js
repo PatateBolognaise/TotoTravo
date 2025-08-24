@@ -180,19 +180,44 @@ IMPORTANT: Réponds UNIQUEMENT avec le JSON, sans \`\`\`json ni texte avant/apr�
             temperature: 0.7
         };
 
-        console.log('📤 Envoi à GPT-4 Vision...');
+        console.log('🔑 Clé API utilisée:', OPENAI_API_KEY.substring(0, 20) + '...');
+        console.log('📤 Envoi à OpenAI...');
         console.log('URL:', OPENAI_API_URL);
         console.log('Modèle:', requestData.model);
+        
+        let response;
+        try {
+            response = await axios.post(OPENAI_API_URL, requestData, {
+                headers: {
+                    'Authorization': `Bearer ${OPENAI_API_KEY}`,
+                    'Content-Type': 'application/json'
+                },
+                timeout: 120000 // Augmenté à 2 minutes pour Render
+            });
+        } catch (apiError) {
+            console.error('❌ Erreur API OpenAI:', apiError.response?.status, apiError.response?.statusText);
+            console.error('❌ Détails erreur:', apiError.response?.data);
+            console.error('❌ Message erreur:', apiError.message);
+            
+            if (apiError.response?.status === 401) {
+                throw new Error('Clé API OpenAI invalide ou expirée');
+            } else if (apiError.response?.status === 429) {
+                throw new Error('Limite de requêtes OpenAI dépassée');
+            } else if (apiError.response?.status === 400) {
+                throw new Error('Requête OpenAI invalide: ' + JSON.stringify(apiError.response?.data));
+            } else {
+                throw new Error('Erreur API OpenAI: ' + apiError.message);
+            }
+        }
 
-        const response = await axios.post(OPENAI_API_URL, requestData, {
-            headers: {
-                'Authorization': `Bearer ${OPENAI_API_KEY}`,
-                'Content-Type': 'application/json'
-            },
-            timeout: 60000
-        });
-
-        console.log('✅ Réponse GPT-4 Vision reçue');
+        console.log('✅ Réponse OpenAI reçue');
+        console.log('📊 Status:', response.status);
+        console.log('📊 Headers:', response.headers);
+        
+        if (!response.data || !response.data.choices || !response.data.choices[0]) {
+            throw new Error('Réponse OpenAI invalide: ' + JSON.stringify(response.data));
+        }
+        
         const aiResponse = response.data.choices[0].message.content;
         console.log('🤖 Réponse IA:', aiResponse.substring(0, 200) + '...');
 
@@ -412,7 +437,9 @@ app.get('/api/test', (req, res) => {
         message: 'API TotoTravo fonctionne!',
         timestamp: new Date().toISOString(),
         environment: process.env.NODE_ENV || 'development',
-        port: PORT
+        port: PORT,
+        openai_key_exists: !!OPENAI_API_KEY,
+        openai_key_preview: OPENAI_API_KEY ? OPENAI_API_KEY.substring(0, 20) + '...' : 'Non définie'
     });
 });
 

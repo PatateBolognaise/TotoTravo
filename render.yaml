@@ -11,3 +11,5 @@ services:
       - key: OPENAI_API_KEY
         sync: false
     healthCheckPath: /api/health
+    autoDeploy: true
+    branch: main
