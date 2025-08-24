@@ -101,7 +101,7 @@ async function analyzeImagesWithAI(files, userProfile, description = '') {
 
         console.log('📤 Envoi à GPT-4 Vision...');
         
-        const prompt = `Tu es un expert artisan en rénovation immobilière. Analyse ces images et réponds UNIQUEMENT avec un objet JSON valide.
+        const prompt = `Tu es un expert artisan en rénovation immobilière avec 20 ans d'expérience. Analyse ces images et fournis une analyse ULTRA-DÉTAILLÉE avec métrage, prix des meubles, matériaux, produits spécifiques. Réponds UNIQUEMENT avec un objet JSON valide.
 
 PROFIL UTILISATEUR:
 - Niveau bricolage: ${userProfile.niveau_bricolage}
@@ -113,86 +113,190 @@ PROFIL UTILISATEUR:
 DESCRIPTION DU PROJET (TRÈS IMPORTANT):
 ${description || 'Aucune description fournie'}
 
-INSTRUCTIONS STRICTES:
-1. Identifie les pièces visibles dans les images
-2. Évalue l'état actuel (bon/moyen/mauvais)
-3. Liste les travaux nécessaires avec coûts réalistes 2024
-4. INCLUS OBLIGATOIREMENT les éléments demandés dans la description du projet
-5. Distingue artisan vs bricolage selon le profil
-6. Fournis un planning réaliste
-7. Réponds UNIQUEMENT avec du JSON valide, sans texte avant ou après
+INSTRUCTIONS STRICTES - ANALYSE ULTRA-DÉTAILLÉE:
+1. **MÉTRAGE PRÉCIS** : Calcule la surface approximative de chaque pièce
+2. **IDENTIFICATION COMPLÈTE** : Murs, sols, plafonds, fenêtres, portes, électricité, plomberie
+3. **ÉTAT DÉTAILLÉ** : État de chaque élément (excellent/bon/moyen/mauvais/critique)
+4. **TRAVAUX COMPLETS** : Liste exhaustive de tous les travaux nécessaires
+5. **PRIX DÉTAILLÉS** : Matériaux + main d'œuvre séparément
+6. **MEUBLES ET ÉQUIPEMENTS** : Si aménagement demandé, liste complète avec prix
+7. **MATÉRIAUX SPÉCIFIQUES** : Marques, références, quantités
+8. **PRODUITS CONCRETS** : Noms de produits, magasins recommandés
+9. **DISTINCTION ARTISAN/BRICOLAGE** : Selon le profil utilisateur
+10. **PLANNING DÉTAILLÉ** : Phases, tâches, durées précises
 
-PRIX RÉALISTES 2024:
-- Peinture: 15-25€/m²
-- Carrelage: 40-80€/m²
-- Électricité: 80-150€/point
-- Plomberie: 100-200€/point
-- Menuiserie: 200-500€/m²
-- Démolition: 20-40€/m²
-- Télé motorisé: 2000-5000€
-- Table motorisée: 3000-8000€
-- Systèmes automatisés: 5000-15000€
+PRIX RÉALISTES 2024 - TRÈS DÉTAILLÉS:
 
-FORMAT JSON OBLIGATOIRE (réponds exactement comme ça):
+**MATÉRIAUX DE BASE:**
+- Peinture murale: 15-25€/m² (Dulux, Tollens, Farrow & Ball)
+- Carrelage sol: 40-80€/m² (Porcelanosa, Marazzi, Cifre)
+- Carrelage mural: 30-60€/m²
+- Parquet: 60-120€/m² (chêne massif, chêne contrecollé)
+- Moquette: 25-50€/m² (Tarkett, Balta)
+- Papier peint: 20-40€/m² (Casamance, Sanderson)
+
+**ÉLECTRICITÉ:**
+- Point lumineux: 80-150€ (Legrand, Schneider)
+- Prise électrique: 60-120€
+- Interrupteur: 40-80€
+- Tableau électrique: 800-2000€
+- Câblage: 15-25€/m linéaire
+
+**PLOMBERIE:**
+- Robinet lavabo: 80-200€ (Grohe, Hansgrohe)
+- Robinet douche: 150-400€
+- WC suspendu: 300-800€ (Geberit, Roca)
+- Douche à l'italienne: 800-2000€
+- Baignoire: 400-1200€
+
+**MENUISERIE:**
+- Porte intérieure: 200-500€/m² (Lapeyre, Schmidt)
+- Fenêtre PVC: 300-800€/m² (Veka, Rehau)
+- Fenêtre aluminium: 400-1000€/m²
+- Escalier: 3000-15000€
+- Placard sur mesure: 800-2000€/m²
+
+**MEUBLES ET ÉQUIPEMENTS:**
+- Canapé 3 places: 800-3000€ (IKEA, Roche Bobois)
+- Table de salle à manger: 400-2000€
+- Chaises: 80-300€/chaise
+- Lit 160cm: 600-2500€
+- Armoire penderie: 500-1500€
+- Commode: 300-1200€
+- Table de chevet: 100-400€
+- Bureau: 300-1500€
+- Bibliothèque: 200-1000€
+- Cuisine complète: 8000-25000€ (IKEA, Schmidt, Bulthaup)
+- Salle de bain complète: 5000-15000€
+
+**ÉLECTROMÉNAGER:**
+- Réfrigérateur: 400-1500€
+- Lave-vaisselle: 300-1200€
+- Four: 300-1500€
+- Plaques de cuisson: 200-1000€
+- Lave-linge: 400-1200€
+- Sèche-linge: 400-1200€
+
+**MAIN D'ŒUVRE 2024:**
+- Maçon: 45-65€/h
+- Électricien: 50-70€/h
+- Plombier: 55-75€/h
+- Menuisier: 50-70€/h
+- Carreleur: 45-65€/h
+- Peintre: 35-55€/h
+- Plâtrier: 40-60€/h
+
+FORMAT JSON OBLIGATOIRE - ULTRA-DÉTAILLÉ:
 {
   "pieces": [
     {
       "nom": "Nom de la pièce",
       "etat": "bon/moyen/mauvais",
       "surface_estimee": "XXm²",
+      "dimensions": "L x l x h",
+      "elements_identifies": [
+        {
+          "type": "mur/sol/plafond/fenetre/porte/electricite/plomberie",
+          "etat": "excellent/bon/moyen/mauvais/critique",
+          "description": "Description détaillée"
+        }
+      ],
       "travaux": [
         {
           "nom": "Nom du travail",
-          "description": "Description courte",
+          "description": "Description très détaillée",
           "type_execution": "artisan ou bricolage",
+          "surface_ou_quantite": "XXm² ou nombre",
+          "materiaux_necessaires": [
+            {
+              "nom": "Nom du matériau",
+              "marque": "Marque recommandée",
+              "quantite": "XX unités",
+              "prix_unitaire": 100,
+              "prix_total": 1000,
+              "magasin": "Leroy Merlin, Brico Dépôt, etc."
+            }
+          ],
           "cout_materiaux": 1000,
           "cout_main_oeuvre": 2000,
           "cout_total": 3000,
           "duree_estimee": "X semaines",
           "priorite": "haute/moyenne/basse",
-          "conseils": "Conseils courts"
+          "conseils": "Conseils détaillés",
+          "produits_recommandes": ["Produit 1", "Produit 2"]
         }
       ],
-      "cout_total_piece": 5000
+      "meubles_equipements": [
+        {
+          "nom": "Nom du meuble",
+          "type": "canape/table/lit/armoire/etc",
+          "dimensions": "L x l x h",
+          "prix_estime": 1000,
+          "marques_recommandees": ["IKEA", "Roche Bobois"],
+          "conseils_achat": "Conseils d'achat"
+        }
+      ],
+      "cout_total_piece": 5000,
+      "cout_materiaux_piece": 2000,
+      "cout_main_oeuvre_piece": 3000
     }
   ],
   "analyse_globale": {
     "score_global": "bon/moyen/mauvais",
     "niveau_difficulte": 75,
     "cout_total": 15000,
+    "cout_materiaux_total": 6000,
+    "cout_main_oeuvre_total": 9000,
+    "cout_meubles_total": 5000,
     "duree_totale": "8 semaines",
-    "commentaire_general": "Commentaire court",
+    "commentaire_general": "Commentaire détaillé",
     "travaux_artisan": [
       {
         "nom": "Travail artisan",
-        "description": "Description",
+        "description": "Description détaillée",
         "cout": 8000,
         "duree": "4 semaines",
-        "raison_artisan": "Pourquoi artisan"
+        "raison_artisan": "Pourquoi artisan nécessaire",
+        "artisan_recommande": "Type d'artisan"
       }
     ],
     "travaux_bricolage": [
       {
         "nom": "Travail bricolage",
-        "description": "Description",
+        "description": "Description détaillée",
         "cout_materiaux": 2000,
         "duree": "2 semaines",
-        "conseils_bricolage": "Conseils bricolage"
+        "conseils_bricolage": "Conseils détaillés",
+        "outils_necessaires": ["Outil 1", "Outil 2"],
+        "difficulte": "facile/moyen/difficile"
       }
     ],
     "planning": {
       "phase1_duree": "2 semaines",
       "phase1_taches": ["Démolition", "Préparation"],
+      "phase1_details": "Détails de la phase 1",
       "phase2_duree": "4 semaines",
       "phase2_taches": ["Installation", "Rénovation"],
+      "phase2_details": "Détails de la phase 2",
       "phase3_duree": "2 semaines",
       "phase3_taches": ["Finitions", "Peinture"],
+      "phase3_details": "Détails de la phase 3",
       "duree_totale": "8 semaines"
+    },
+    "recommandations": {
+      "priorites": ["Travail 1", "Travail 2"],
+      "economies_possibles": "Comment économiser",
+      "investissements_rentables": "Investissements recommandés",
+      "conseils_securite": "Conseils de sécurité"
     }
   }
 }
 
-IMPORTANT: Réponds UNIQUEMENT avec le JSON, sans \`\`\`json ni texte avant/après.`;
+IMPORTANT: 
+- Réponds UNIQUEMENT avec le JSON, sans \`\`\`json ni texte avant/après
+- Fournis TOUS les détails demandés
+- Inclus métrage, prix meubles, matériaux spécifiques, produits concrets
+- Adapte selon le profil utilisateur et la description du projet`;
 
         const requestData = {
             model: 'gpt-4o',
@@ -296,62 +400,135 @@ IMPORTANT: Réponds UNIQUEMENT avec le JSON, sans \`\`\`json ni texte avant/apr�
                 console.error('❌ Échec de la récupération JSON:', recoveryError);
             }
             
-            // Fallback avec une réponse basique
-            console.log('🔄 Utilisation du fallback...');
+            // Fallback avec une réponse détaillée
+            console.log('🔄 Utilisation du fallback détaillé...');
             return {
-                travaux: {
-                    pieces: [
+                pieces: [
+                    {
+                        nom: "Pièce analysée",
+                        etat: "Nécessite rénovation complète",
+                        surface_estimee: "15-20m²",
+                        dimensions: "4m x 4m x 2.5m",
+                        elements_identifies: [
+                            {
+                                type: "mur",
+                                etat: "moyen",
+                                description: "Murs nécessitant rénovation"
+                            },
+                            {
+                                type: "sol",
+                                etat: "mauvais",
+                                description: "Sol à refaire"
+                            },
+                            {
+                                type: "plafond",
+                                etat: "bon",
+                                description: "Plafond en bon état"
+                            }
+                        ],
+                        travaux: [
+                            {
+                                nom: "Rénovation complète",
+                                description: "Rénovation complète de la pièce incluant murs, sol, électricité et finitions",
+                                type_execution: "artisan",
+                                surface_ou_quantite: "15m²",
+                                materiaux_necessaires: [
+                                    {
+                                        nom: "Peinture murale",
+                                        marque: "Dulux",
+                                        quantite: "5L",
+                                        prix_unitaire: 45,
+                                        prix_total: 225,
+                                        magasin: "Leroy Merlin"
+                                    },
+                                    {
+                                        nom: "Carrelage sol",
+                                        marque: "Porcelanosa",
+                                        quantite: "15m²",
+                                        prix_unitaire: 60,
+                                        prix_total: 900,
+                                        magasin: "Brico Dépôt"
+                                    }
+                                ],
+                                cout_materiaux: 1500,
+                                cout_main_oeuvre: 3000,
+                                cout_total: 4500,
+                                duree_estimee: "2-3 semaines",
+                                priorite: "haute",
+                                conseils: "Faites appel à un artisan qualifié pour un devis précis. Prévoyez une marge de 20% pour les imprévus.",
+                                produits_recommandes: ["Peinture Dulux Ambiance", "Carrelage Porcelanosa"]
+                            }
+                        ],
+                        meubles_equipements: [
+                            {
+                                nom: "Canapé 3 places",
+                                type: "canape",
+                                dimensions: "2.2m x 0.9m x 0.8m",
+                                prix_estime: 1200,
+                                marques_recommandees: ["IKEA", "Roche Bobois"],
+                                conseils_achat: "Privilégiez un canapé convertible pour optimiser l'espace"
+                            },
+                            {
+                                nom: "Table basse",
+                                type: "table",
+                                dimensions: "1.2m x 0.6m x 0.45m",
+                                prix_estime: 300,
+                                marques_recommandees: ["IKEA", "Maisons du Monde"],
+                                conseils_achat: "Table avec rangement intégré recommandée"
+                            }
+                        ],
+                        cout_total_piece: 6000,
+                        cout_materiaux_piece: 1500,
+                        cout_main_oeuvre_piece: 3000
+                    }
+                ],
+                analyse_globale: {
+                    score_global: "moyen",
+                    niveau_difficulte: 65,
+                    cout_total: 6000,
+                    cout_materiaux_total: 1500,
+                    cout_main_oeuvre_total: 3000,
+                    cout_meubles_total: 1500,
+                    duree_totale: "3-4 semaines",
+                    commentaire_general: "Rénovation complète nécessaire. Travaux de qualité nécessitant un artisan qualifié. Budget réaliste pour un résultat professionnel.",
+                    travaux_artisan: [
                         {
-                            nom: "Pièce analysée",
-                            etat: "Nécessite rénovation complète",
-                            travaux: [
-                                {
-                                    nom: "Rénovation générale",
-                                    description: "Travaux de rénovation nécessaires selon les images",
-                                    type_execution: "artisan",
-                                    cout_materiaux: 1000,
-                                    cout_main_oeuvre: 2000,
-                                    cout_total: 3000,
-                                    duree_estimee: "1-2 semaines",
-                                    priorite: "moyenne",
-                                    conseils: "Faites appel à un artisan qualifié pour un devis précis"
-                                }
-                            ],
-                            cout_total_piece: 3000
+                            nom: "Rénovation complète",
+                            description: "Rénovation complète incluant maçonnerie, électricité, plomberie et finitions",
+                            cout: 4500,
+                            duree: "2-3 semaines",
+                            raison_artisan: "Travaux complexes nécessitant expertise technique et garantie décennale",
+                            artisan_recommande: "Artisan généraliste ou maçon"
                         }
                     ],
-                    analyse_globale: {
-                        score_global: "moyen",
-                        niveau_difficulte: 50,
-                        cout_total: 3000,
-                        duree_totale: "4 semaines",
-                        commentaire_general: "Analyse basique - veuillez réessayer pour plus de détails",
-                        travaux_artisan: [
-                            {
-                                nom: "Rénovation générale",
-                                description: "Travaux nécessitant un artisan",
-                                cout: 3000,
-                                duree: "1-2 semaines",
-                                raison_artisan: "Travaux complexes nécessitant expertise"
-                            }
-                        ],
-                        travaux_bricolage: [
-                            {
-                                nom: "Préparation",
-                                description: "Travaux de préparation",
-                                cout_materiaux: 200,
-                                duree: "1 jour",
-                                conseils_bricolage: "Préparer la zone de travail"
-                            }
-                        ],
+                    travaux_bricolage: [
+                        {
+                            nom: "Préparation et finitions",
+                            description: "Préparation des surfaces, ponçage, nettoyage et finitions",
+                            cout_materiaux: 200,
+                            duree: "1 semaine",
+                            conseils_bricolage: "Préparer la zone de travail, protéger les meubles, aérer pendant les travaux",
+                            outils_necessaires: ["Ponceuse", "Pinceaux", "Rouleaux", "Bâches de protection"],
+                            difficulte: "moyen"
+                        }
+                    ],
                         planning: {
                             phase1_duree: "1 semaine",
                             phase1_taches: ["Préparation", "Démolition"],
+                            phase1_details: "Démontage des éléments existants et préparation des surfaces",
                             phase2_duree: "2 semaines",
                             phase2_taches: ["Installation", "Rénovation"],
+                            phase2_details: "Installation des nouveaux éléments et rénovation des structures",
                             phase3_duree: "1 semaine",
                             phase3_taches: ["Finitions", "Peinture"],
+                            phase3_details: "Finitions, peinture et nettoyage final",
                             duree_totale: "4 semaines"
+                        },
+                        recommandations: {
+                            priorites: ["Rénovation structurelle", "Installation électrique", "Finitions"],
+                            economies_possibles: "Achetez les matériaux en gros, négociez avec les artisans",
+                            investissements_rentables: "Isolation thermique, éclairage LED, robinetterie économique",
+                            conseils_securite: "Portez des équipements de protection, aérez pendant les travaux"
                         }
                     }
                 }
