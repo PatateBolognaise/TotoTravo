@@ -1652,3 +1652,139 @@ body {
     }
 }
 
+/* Modal des questions dynamiques */
+.questions-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+    backdrop-filter: blur(5px);
+}
+
+.questions-content {
+    background: white;
+    border-radius: 20px;
+    padding: 40px;
+    max-width: 600px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    animation: slideIn 0.3s ease-out;
+}
+
+.questions-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.questions-header h2 {
+    color: #2c3e50;
+    margin-bottom: 10px;
+    font-size: 24px;
+}
+
+.questions-header p {
+    color: #7f8c8d;
+    font-size: 16px;
+}
+
+.question-item {
+    margin-bottom: 30px;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 15px;
+    border-left: 4px solid #3498db;
+}
+
+.question-item h3 {
+    color: #2c3e50;
+    margin-bottom: 15px;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.radio-option, .checkbox-option {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+    padding: 12px;
+    background: white;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.radio-option:hover, .checkbox-option:hover {
+    border-color: #3498db;
+    background: #ecf0f1;
+}
+
+.radio-option input, .checkbox-option input {
+    margin-right: 12px;
+    transform: scale(1.2);
+}
+
+.radio-label, .checkbox-label {
+    font-size: 16px;
+    color: #2c3e50;
+    cursor: pointer;
+    flex: 1;
+}
+
+.questions-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 30px;
+    gap: 15px;
+}
+
+.questions-actions button {
+    padding: 15px 30px;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    flex: 1;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #3498db, #2980b9);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #2980b9, #1f5f8b);
+    transform: translateY(-2px);
+}
+
+.btn-secondary {
+    background: #ecf0f1;
+    color: #2c3e50;
+}
+
+.btn-secondary:hover {
+    background: #bdc3c7;
+    transform: translateY(-2px);
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+

@@ -37,6 +37,89 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
+// Fonctions d'aide pour adapter l'analyse selon le profil utilisateur
+function getBricolageLevel(niveau) {
+    const levels = {
+        'debutant': 'Peu d\'expérience, conseils détaillés nécessaires',
+        'intermediaire': 'Expérience modérée, peut faire des travaux simples',
+        'expert': 'Expérience avancée, peut faire des travaux complexes'
+    };
+    return levels[niveau] || 'Niveau non spécifié';
+}
+
+function getBudgetRange(budget) {
+    const ranges = {
+        'serre': 'Budget limité, optimiser les coûts',
+        'moyen': 'Budget standard, qualité équilibrée',
+        'confortable': 'Budget élevé, qualité premium'
+    };
+    return ranges[budget] || 'Budget non spécifié';
+}
+
+function getDelaiInfo(delai) {
+    const infos = {
+        'urgent': 'Travaux prioritaires, planning accéléré',
+        'normal': 'Délai standard, planning équilibré',
+        'flexible': 'Délai flexible, optimisation possible'
+    };
+    return infos[delai] || 'Délai non spécifié';
+}
+
+function getImplicationInfo(implication) {
+    const infos = {
+        'minimale': 'Intervention minimale, artisan principal',
+        'moderee': 'Participation modérée, mix artisan/bricolage',
+        'maximale': 'Participation maximale, bricolage principal'
+    };
+    return infos[implication] || 'Implication non spécifiée';
+}
+
+function getProjectTypeInfo(type) {
+    const infos = {
+        'reparation': 'Travaux de réparation et maintenance',
+        'renovation': 'Rénovation complète',
+        'amenagement': 'Aménagement et décoration',
+        'construction': 'Travaux de construction'
+    };
+    return infos[type] || 'Type non spécifié';
+}
+
+function getBricolageInstructions(niveau) {
+    const instructions = {
+        'debutant': '- Privilégie les travaux simples et sécurisés\n- Fournis des conseils détaillés étape par étape\n- Recommande des matériaux faciles à utiliser\n- Évite les travaux dangereux ou complexes\n- Inclus des tutoriels et guides',
+        'intermediaire': '- Propose un mix de travaux simples et modérés\n- Fournis des conseils techniques détaillés\n- Recommande des matériaux de qualité moyenne\n- Inclus des travaux nécessitant des compétences de base\n- Donne des conseils de sécurité',
+        'expert': '- Peut proposer des travaux complexes\n- Fournis des conseils techniques avancés\n- Recommande des matériaux professionnels\n- Inclus des travaux nécessitant expertise\n- Optimise les coûts avec bricolage'
+    };
+    return instructions[niveau] || 'Instructions par défaut';
+}
+
+function getBudgetInstructions(budget) {
+    const instructions = {
+        'serre': '- Privilégie les matériaux entrée de gamme\n- Optimise les coûts au maximum\n- Propose des alternatives économiques\n- Inclus des conseils d\'économie\n- Évite les finitions premium',
+        'moyen': '- Équilibre qualité et prix\n- Propose des matériaux milieu de gamme\n- Inclus quelques finitions soignées\n- Optimise sans sacrifier la qualité\n- Recommande des marques fiables',
+        'confortable': '- Privilégie la qualité premium\n- Propose des matériaux haut de gamme\n- Inclus des finitions soignées\n- Recommande des marques premium\n- Optimise l\'esthétique et la durabilité'
+    };
+    return instructions[budget] || 'Instructions par défaut';
+}
+
+function getDelaiInstructions(delai) {
+    const instructions = {
+        'urgent': '- Planning accéléré et optimisé\n- Travaux prioritaires identifiés\n- Solutions rapides proposées\n- Évite les délais longs\n- Propose des alternatives express',
+        'normal': '- Planning équilibré\n- Travaux organisés par priorité\n- Délais réalistes\n- Optimisation possible\n- Planning détaillé par phases',
+        'flexible': '- Planning optimisé pour économies\n- Travaux organisés par saison\n- Délais étalés si avantageux\n- Recherche de bonnes affaires\n- Planning flexible et adaptable'
+    };
+    return instructions[delai] || 'Instructions par défaut';
+}
+
+function getImplicationInstructions(implication) {
+    const instructions = {
+        'minimale': '- Travaux principalement par artisan\n- Conseils pour superviser\n- Choix de matériaux simplifiés\n- Planning optimisé pour artisan\n- Coûts main d\'œuvre élevés',
+        'moderee': '- Mix artisan et bricolage\n- Travaux simples en bricolage\n- Travaux complexes par artisan\n- Conseils de participation\n- Optimisation des coûts',
+        'maximale': '- Travaux principalement en bricolage\n- Conseils techniques détaillés\n- Outils et matériaux nécessaires\n- Planning adapté au bricolage\n- Économies maximales'
+    };
+    return instructions[implication] || 'Instructions par défaut';
+}
+
 // Fonction pour rechercher les prix réels avec SerpAPI
 async function searchRealPrices(product, store = '') {
     try {
@@ -170,15 +253,29 @@ async function analyzeImagesWithAI(files, userProfile, description = '') {
 PRIX RÉELS TROUVÉS SUR INTERNET (utilise ces prix quand possible):
 ${JSON.stringify(realPrices, null, 2)}
 
-PROFIL UTILISATEUR:
-- Niveau bricolage: ${userProfile.niveau_bricolage}
-- Budget: ${userProfile.budget}
-- Délai: ${userProfile.delai}
-- Implication: ${userProfile.implication}
-- Type projet: ${userProfile.type_projet}
+PROFIL UTILISATEUR (ADAPTE TOUTE L'ANALYSE SELON CE PROFIL):
+- Niveau bricolage: ${userProfile.niveau_bricolage} (${getBricolageLevel(userProfile.niveau_bricolage)})
+- Budget: ${userProfile.budget} (${getBudgetRange(userProfile.budget)})
+- Délai: ${userProfile.delai} (${getDelaiInfo(userProfile.delai)})
+- Implication: ${userProfile.implication} (${getImplicationInfo(userProfile.implication)})
+- Type projet: ${userProfile.type_projet} (${getProjectTypeInfo(userProfile.type_projet)})
 
 DESCRIPTION DU PROJET (TRÈS IMPORTANT):
 ${description || 'Aucune description fournie'}
+
+INSTRUCTIONS SPÉCIFIQUES SELON LE PROFIL:
+
+**NIVEAU BRICOLAGE ${userProfile.niveau_bricolage.toUpperCase()}:**
+${getBricolageInstructions(userProfile.niveau_bricolage)}
+
+**BUDGET ${userProfile.budget.toUpperCase()}:**
+${getBudgetInstructions(userProfile.budget)}
+
+**DÉLAI ${userProfile.delai.toUpperCase()}:**
+${getDelaiInstructions(userProfile.delai)}
+
+**IMPLICATION ${userProfile.implication.toUpperCase()}:**
+${getImplicationInstructions(userProfile.implication)}
 
 INSTRUCTIONS STRICTES - ANALYSE ULTRA-DÉTAILLÉE:
 1. **MÉTRAGE PRÉCIS** : Calcule la surface approximative de chaque pièce
@@ -661,6 +758,189 @@ INSTRUCTIONS:
         console.error('❌ Erreur chatbot:', error.message);
         return 'Désolé, je ne peux pas répondre pour le moment. Veuillez réessayer.';
     }
+}
+
+// Endpoint pour obtenir les questions dynamiques selon le profil
+app.post('/api/get-questions', (req, res) => {
+    try {
+        const { userProfile, description } = req.body;
+        
+        if (!userProfile) {
+            return res.status(400).json({ error: 'Profil utilisateur requis' });
+        }
+
+        const questions = generateDynamicQuestions(userProfile, description);
+        
+        res.json({
+            questions: questions,
+            totalQuestions: questions.length
+        });
+    } catch (error) {
+        console.error('❌ Erreur génération questions:', error);
+        res.status(500).json({ error: 'Erreur lors de la génération des questions' });
+    }
+});
+
+// Fonction pour générer des questions dynamiques selon le profil
+function generateDynamicQuestions(userProfile, description = '') {
+    const questions = [];
+    
+    // Questions de base pour tous les profils
+    questions.push({
+        id: 'style_prefere',
+        question: 'Quel style préférez-vous pour votre projet ?',
+        type: 'radio',
+        options: [
+            { value: 'moderne', label: 'Moderne et épuré' },
+            { value: 'classique', label: 'Classique et traditionnel' },
+            { value: 'contemporain', label: 'Contemporain et design' },
+            { value: 'rustique', label: 'Rustique et chaleureux' },
+            { value: 'industriel', label: 'Industriel et urbain' }
+        ],
+        required: true
+    });
+
+    // Questions selon le niveau de bricolage
+    if (userProfile.niveau_bricolage === 'debutant') {
+        questions.push({
+            id: 'assistance_souhaitee',
+            question: 'Souhaitez-vous une assistance particulière ?',
+            type: 'radio',
+            options: [
+                { value: 'tutoriels', label: 'Tutoriels détaillés' },
+                { value: 'accompagnement', label: 'Accompagnement par un artisan' },
+                { value: 'materiaux_simples', label: 'Matériaux faciles à utiliser' },
+                { value: 'outils_basiques', label: 'Outils basiques uniquement' }
+            ],
+            required: true
+        });
+    } else if (userProfile.niveau_bricolage === 'expert') {
+        questions.push({
+            id: 'outils_disponibles',
+            question: 'Quels outils professionnels avez-vous à disposition ?',
+            type: 'checkbox',
+            options: [
+                { value: 'perceuse', label: 'Perceuse/Visseuse' },
+                { value: 'scie', label: 'Scie circulaire' },
+                { value: 'ponceuse', label: 'Ponceuse' },
+                { value: 'niveau', label: 'Niveau laser' },
+                { value: 'compresseur', label: 'Compresseur' },
+                { value: 'aucun', label: 'Aucun outil professionnel' }
+            ],
+            required: true
+        });
+    }
+
+    // Questions selon le budget
+    if (userProfile.budget === 'serre') {
+        questions.push({
+            id: 'priorites_economie',
+            question: 'Sur quoi êtes-vous prêt à faire des économies ?',
+            type: 'checkbox',
+            options: [
+                { value: 'materiaux', label: 'Qualité des matériaux' },
+                { value: 'finitions', label: 'Finitions soignées' },
+                { value: 'marques', label: 'Marques reconnues' },
+                { value: 'rapidite', label: 'Rapidité d\'exécution' },
+                { value: 'aucune', label: 'Aucune économie souhaitée' }
+            ],
+            required: true
+        });
+    } else if (userProfile.budget === 'confortable') {
+        questions.push({
+            id: 'priorites_qualite',
+            question: 'Quelles sont vos priorités pour ce projet ?',
+            type: 'checkbox',
+            options: [
+                { value: 'durabilite', label: 'Durabilité et longévité' },
+                { value: 'esthetique', label: 'Esthétique et design' },
+                { value: 'confort', label: 'Confort et fonctionnalité' },
+                { value: 'valeur_ajoutee', label: 'Valeur ajoutée au bien' },
+                { value: 'ecologie', label: 'Matériaux écologiques' }
+            ],
+            required: true
+        });
+    }
+
+    // Questions selon le délai
+    if (userProfile.delai === 'urgent') {
+        questions.push({
+            id: 'contraintes_urgence',
+            question: 'Quelles sont vos contraintes de temps ?',
+            type: 'radio',
+            options: [
+                { value: 'semaine', label: 'Dans la semaine' },
+                { value: 'quinzaine', label: 'Dans les 15 jours' },
+                { value: 'mois', label: 'Dans le mois' },
+                { value: 'saison', label: 'Avant la saison' }
+            ],
+            required: true
+        });
+    }
+
+    // Questions selon l'implication
+    if (userProfile.implication === 'maximale') {
+        questions.push({
+            id: 'temps_disponible',
+            question: 'Combien de temps pouvez-vous consacrer par semaine ?',
+            type: 'radio',
+            options: [
+                { value: '5h', label: '5 heures par semaine' },
+                { value: '10h', label: '10 heures par semaine' },
+                { value: '20h', label: '20 heures par semaine' },
+                { value: 'temps_plein', label: 'Temps plein disponible' }
+            ],
+            required: true
+        });
+    }
+
+    // Questions spécifiques selon la description
+    if (description.toLowerCase().includes('cuisine')) {
+        questions.push({
+            id: 'type_cuisine',
+            question: 'Quel type de cuisine souhaitez-vous ?',
+            type: 'radio',
+            options: [
+                { value: 'cuisine_ouverte', label: 'Cuisine ouverte' },
+                { value: 'cuisine_fermee', label: 'Cuisine fermée' },
+                { value: 'cuisine_americaine', label: 'Cuisine américaine' },
+                { value: 'cuisine_equipee', label: 'Cuisine équipée' }
+            ],
+            required: true
+        });
+    }
+
+    if (description.toLowerCase().includes('salle de bain') || description.toLowerCase().includes('salle de bains')) {
+        questions.push({
+            id: 'type_salle_bain',
+            question: 'Quel type de salle de bain souhaitez-vous ?',
+            type: 'radio',
+            options: [
+                { value: 'douche', label: 'Avec douche' },
+                { value: 'baignoire', label: 'Avec baignoire' },
+                { value: 'douche_baignoire', label: 'Douche + baignoire' },
+                { value: 'douche_italienne', label: 'Douche à l\'italienne' }
+            ],
+            required: true
+        });
+    }
+
+            if (description.toLowerCase().includes('chambre') || description.toLowerCase().includes('lit')) {
+            questions.push({
+                id: 'type_chambre',
+                question: 'Quel type de chambre souhaitez-vous ?',
+                type: 'radio',
+                options: [
+                    { value: 'chambre_parentale', label: 'Chambre parentale' },
+                    { value: 'chambre_enfant', label: 'Chambre d\'enfant' },
+                    { value: 'chambre_ado', label: 'Chambre d\'adolescent' },
+                    { value: 'chambre_guest', label: 'Chambre d\'amis' }
+                ],
+                required: true
+            });
+        }
+
+    return questions;
 }
 
 // Routes

@@ -303,6 +303,20 @@ async function analyzeImages() {
 
     const description = document.getElementById('description')?.value || '';
     
+    // Récupérer les questions dynamiques selon le profil
+    const questions = await getDynamicQuestions(description);
+    
+    if (questions && questions.length > 0) {
+        // Afficher les questions avant l'analyse
+        const answers = await showDynamicQuestions(questions);
+        if (!answers) {
+            return; // L'utilisateur a annulé
+        }
+        
+        // Ajouter les réponses au profil utilisateur
+        userProfile = { ...userProfile, ...answers };
+    }
+    
     // Afficher la section de chargement
     const loadingSection = document.getElementById('loadingSection');
     const resultsSection = document.getElementById('resultsSection');
@@ -1010,4 +1024,124 @@ function stopLoadingAnimation() {
         clearInterval(loadingInterval);
         loadingInterval = null;
     }
+}
+
+// Fonction pour récupérer les questions dynamiques
+async function getDynamicQuestions(description) {
+    try {
+        const response = await fetch('/api/get-questions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                userProfile: userProfile,
+                description: description
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        return data.questions || [];
+    } catch (error) {
+        console.error('Erreur récupération questions:', error);
+        return [];
+    }
+}
+
+// Fonction pour afficher les questions dynamiques
+async function showDynamicQuestions(questions) {
+    return new Promise((resolve) => {
+        // Créer la modal des questions
+        const modal = document.createElement('div');
+        modal.className = 'questions-modal';
+        modal.innerHTML = `
+            <div class="questions-content">
+                <div class="questions-header">
+                    <h2>🎯 Questions pour personnaliser votre analyse</h2>
+                    <p>Ces questions nous aident à adapter l'analyse à vos besoins spécifiques</p>
+                </div>
+                <form id="dynamicQuestionsForm">
+                    ${questions.map((q, index) => `
+                        <div class="question-item" data-question-id="${q.id}">
+                            <h3>${index + 1}. ${q.question}</h3>
+                            ${q.type === 'radio' ? 
+                                q.options.map(option => `
+                                    <label class="radio-option">
+                                        <input type="radio" name="${q.id}" value="${option.value}" ${q.required ? 'required' : ''}>
+                                        <span class="radio-label">${option.label}</span>
+                                    </label>
+                                `).join('') :
+                                q.options.map(option => `
+                                    <label class="checkbox-option">
+                                        <input type="checkbox" name="${q.id}" value="${option.value}">
+                                        <span class="checkbox-label">${option.label}</span>
+                                    </label>
+                                `).join('')
+                            }
+                        </div>
+                    `).join('')}
+                    <div class="questions-actions">
+                        <button type="button" class="btn-secondary" onclick="closeQuestionsModal()">Annuler</button>
+                        <button type="submit" class="btn-primary">Continuer l'analyse</button>
+                    </div>
+                </form>
+            </div>
+        `;
+
+        document.body.appendChild(modal);
+
+        // Gérer la soumission du formulaire
+        const form = modal.querySelector('#dynamicQuestionsForm');
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(form);
+            const answers = {};
+            
+            // Récupérer les réponses radio
+            questions.forEach(q => {
+                if (q.type === 'radio') {
+                    const value = formData.get(q.id);
+                    if (value) {
+                        answers[q.id] = value;
+                    }
+                } else if (q.type === 'checkbox') {
+                    // Récupérer les réponses checkbox
+                    const values = formData.getAll(q.id);
+                    if (values.length > 0) {
+                        answers[q.id] = values;
+                    }
+                }
+            });
+
+            // Vérifier que toutes les questions requises sont répondues
+            const requiredQuestions = questions.filter(q => q.required);
+            const answeredRequired = requiredQuestions.every(q => {
+                if (q.type === 'radio') {
+                    return answers[q.id];
+                } else {
+                    return answers[q.id] && answers[q.id].length > 0;
+                }
+            });
+
+            if (!answeredRequired) {
+                showError('Veuillez répondre à toutes les questions obligatoires');
+                return;
+            }
+
+            // Fermer la modal et retourner les réponses
+            closeQuestionsModal();
+            resolve(answers);
+        });
+
+        // Fonction pour fermer la modal
+        window.closeQuestionsModal = () => {
+            document.body.removeChild(modal);
+            resolve(null);
+        };
+    });
 }
