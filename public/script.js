@@ -313,8 +313,8 @@ async function analyzeImages() {
     
     if (questions && questions.length > 0) {
         console.log('✅ Affichage des questions dynamiques...');
-        // Afficher les questions avant l'analyse
-        const answers = await showDynamicQuestions(questions);
+        // Afficher les questions dans l'interface existante
+        const answers = await showDynamicQuestionsInline(questions);
         console.log('📝 Réponses utilisateur:', answers);
         
         if (!answers) {
@@ -1077,95 +1077,102 @@ async function getDynamicQuestions(description) {
     }
 }
 
-// Fonction pour afficher les questions dynamiques
-async function showDynamicQuestions(questions) {
+// Fonction pour afficher les questions dynamiques intégrées dans l'interface
+async function showDynamicQuestionsInline(questions) {
     return new Promise((resolve) => {
-        // Créer la modal des questions
-        const modal = document.createElement('div');
-        modal.className = 'questions-modal';
-        modal.innerHTML = `
-            <div class="questions-content">
+        // Masquer la section de chargement et résultats
+        const loadingSection = document.getElementById('loadingSection');
+        const resultsSection = document.getElementById('resultsSection');
+        if (loadingSection) loadingSection.style.display = 'none';
+        if (resultsSection) resultsSection.style.display = 'none';
+        
+        // Créer la section des questions dynamiques
+        const questionsSection = document.createElement('div');
+        questionsSection.id = 'dynamicQuestionsSection';
+        questionsSection.className = 'questions-section';
+        questionsSection.innerHTML = `
+            <div class="container">
                 <div class="questions-header">
-                    <h2>🎯 Questions pour personnaliser votre analyse</h2>
-                    <p>Ces questions nous aident à adapter l'analyse à vos besoins spécifiques</p>
+                    <h2>🎯 Questions personnalisées</h2>
+                    <p>Répondez à ces questions pour une analyse ultra-précise adaptée à votre profil</p>
                 </div>
-                <form id="dynamicQuestionsForm">
+                <form id="dynamicQuestionsForm" class="questions-form">
                     ${questions.map((q, index) => `
-                        <div class="question-item" data-question-id="${q.id}">
+                        <div class="question-item">
                             <h3>${index + 1}. ${q.question}</h3>
-                            ${q.type === 'radio' ? 
-                                q.options.map(option => `
-                                    <label class="radio-option">
-                                        <input type="radio" name="${q.id}" value="${option.value}" ${q.required ? 'required' : ''}>
-                                        <span class="radio-label">${option.label}</span>
-                                    </label>
-                                `).join('') :
-                                q.options.map(option => `
-                                    <label class="checkbox-option">
-                                        <input type="checkbox" name="${q.id}" value="${option.value}">
-                                        <span class="checkbox-label">${option.label}</span>
-                                    </label>
-                                `).join('')
-                            }
+                            <div class="options-container">
+                                ${q.type === 'radio' ? 
+                                    q.options.map(option => `
+                                        <label class="radio-option">
+                                            <input type="radio" name="${q.id}" value="${option.value}" ${q.required ? 'required' : ''}>
+                                            <span class="radio-custom"></span>
+                                            <span class="option-label">${option.label}</span>
+                                        </label>
+                                    `).join('') :
+                                    q.options.map(option => `
+                                        <label class="checkbox-option">
+                                            <input type="checkbox" name="${q.id}" value="${option.value}" ${q.required ? 'required' : ''}>
+                                            <span class="checkbox-custom"></span>
+                                            <span class="option-label">${option.label}</span>
+                                        </label>
+                                    `).join('')
+                                }
+                            </div>
                         </div>
                     `).join('')}
                     <div class="questions-actions">
-                        <button type="button" class="btn-secondary" onclick="closeQuestionsModal()">Annuler</button>
-                        <button type="submit" class="btn-primary">Continuer l'analyse</button>
+                        <button type="button" class="btn-secondary" onclick="cancelQuestions()">Retour</button>
+                        <button type="submit" class="btn-primary">Lancer l'analyse personnalisée</button>
                     </div>
                 </form>
             </div>
         `;
-
-        document.body.appendChild(modal);
-
+        
+        // Insérer après la section d'upload
+        const uploadSection = document.getElementById('uploadSection');
+        uploadSection.parentNode.insertBefore(questionsSection, uploadSection.nextSibling);
+        
         // Gérer la soumission du formulaire
-        const form = modal.querySelector('#dynamicQuestionsForm');
+        const form = questionsSection.querySelector('#dynamicQuestionsForm');
         form.addEventListener('submit', (e) => {
             e.preventDefault();
             
-            const formData = new FormData(form);
             const answers = {};
-            
-            // Récupérer les réponses radio
             questions.forEach(q => {
                 if (q.type === 'radio') {
-                    const value = formData.get(q.id);
-                    if (value) {
-                        answers[q.id] = value;
+                    const selected = form.querySelector(`input[name="${q.id}"]:checked`);
+                    if (selected) {
+                        answers[q.id] = selected.value;
                     }
-                } else if (q.type === 'checkbox') {
-                    // Récupérer les réponses checkbox
-                    const values = formData.getAll(q.id);
-                    if (values.length > 0) {
-                        answers[q.id] = values;
-                    }
-                }
-            });
-
-            // Vérifier que toutes les questions requises sont répondues
-            const requiredQuestions = questions.filter(q => q.required);
-            const answeredRequired = requiredQuestions.every(q => {
-                if (q.type === 'radio') {
-                    return answers[q.id];
                 } else {
-                    return answers[q.id] && answers[q.id].length > 0;
+                    const selected = Array.from(form.querySelectorAll(`input[name="${q.id}"]:checked`));
+                    answers[q.id] = selected.map(input => input.value);
                 }
             });
-
-            if (!answeredRequired) {
-                showError('Veuillez répondre à toutes les questions obligatoires');
+            
+            // Validation
+            const requiredQuestions = questions.filter(q => q.required);
+            const missingAnswers = requiredQuestions.filter(q => {
+                if (q.type === 'radio') {
+                    return !answers[q.id];
+                } else {
+                    return !answers[q.id] || answers[q.id].length === 0;
+                }
+            });
+            
+            if (missingAnswers.length > 0) {
+                showError('Veuillez répondre à toutes les questions obligatoires.');
                 return;
             }
-
-            // Fermer la modal et retourner les réponses
-            closeQuestionsModal();
+            
+            // Masquer la section des questions et continuer l'analyse
+            questionsSection.remove();
             resolve(answers);
         });
-
-        // Fonction pour fermer la modal
-        window.closeQuestionsModal = () => {
-            document.body.removeChild(modal);
+        
+        // Gérer l'annulation
+        window.cancelQuestions = () => {
+            questionsSection.remove();
             resolve(null);
         };
     });

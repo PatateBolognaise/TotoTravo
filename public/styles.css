@@ -1652,89 +1652,158 @@ body {
     }
 }
 
-/* Modal des questions dynamiques */
-.questions-modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.8);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 10000;
-    backdrop-filter: blur(5px);
+/* Questions dynamiques intégrées */
+.questions-section {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 60px 0;
+    margin: 40px 0;
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
 }
 
-.questions-content {
-    background: white;
-    border-radius: 20px;
-    padding: 40px;
-    max-width: 600px;
-    width: 90%;
-    max-height: 80vh;
-    overflow-y: auto;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-    animation: slideIn 0.3s ease-out;
+.questions-section .container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 20px;
 }
 
 .questions-header {
     text-align: center;
-    margin-bottom: 30px;
+    margin-bottom: 40px;
+    color: white;
 }
 
 .questions-header h2 {
-    color: #2c3e50;
-    margin-bottom: 10px;
-    font-size: 24px;
+    font-size: 36px;
+    margin-bottom: 15px;
+    font-weight: 700;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .questions-header p {
-    color: #7f8c8d;
-    font-size: 16px;
+    font-size: 18px;
+    opacity: 0.9;
+    margin: 0;
+}
+
+.questions-form {
+    background: white;
+    border-radius: 20px;
+    padding: 40px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
 }
 
 .question-item {
-    margin-bottom: 30px;
-    padding: 20px;
+    margin-bottom: 35px;
+    padding: 25px;
     background: #f8f9fa;
     border-radius: 15px;
-    border-left: 4px solid #3498db;
+    border-left: 5px solid #667eea;
+    transition: all 0.3s ease;
+}
+
+.question-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
 }
 
 .question-item h3 {
     color: #2c3e50;
-    margin-bottom: 15px;
-    font-size: 18px;
+    font-size: 20px;
+    margin-bottom: 20px;
     font-weight: 600;
-}
-
-.radio-option, .checkbox-option {
     display: flex;
     align-items: center;
-    margin-bottom: 12px;
-    padding: 12px;
+}
+
+.question-item h3::before {
+    content: "🎯";
+    margin-right: 10px;
+    font-size: 24px;
+}
+
+.options-container {
+    display: grid;
+    gap: 12px;
+}
+
+.radio-option,
+.checkbox-option {
+    display: flex;
+    align-items: center;
+    padding: 15px 20px;
     background: white;
-    border-radius: 10px;
+    border-radius: 12px;
     cursor: pointer;
     transition: all 0.3s ease;
-    border: 2px solid transparent;
+    border: 2px solid #e9ecef;
+    position: relative;
+    overflow: hidden;
 }
 
-.radio-option:hover, .checkbox-option:hover {
-    border-color: #3498db;
-    background: #ecf0f1;
+.radio-option:hover,
+.checkbox-option:hover {
+    background: #e3f2fd;
+    border-color: #667eea;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
 }
 
-.radio-option input, .checkbox-option input {
-    margin-right: 12px;
-    transform: scale(1.2);
+.radio-option input,
+.checkbox-option input {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
 }
 
-.radio-label, .checkbox-label {
-    font-size: 16px;
+.radio-custom,
+.checkbox-custom {
+    position: relative;
+    width: 20px;
+    height: 20px;
+    margin-right: 15px;
+    border: 2px solid #667eea;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+}
+
+.checkbox-custom {
+    border-radius: 4px;
+}
+
+.radio-option input:checked ~ .radio-custom::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 10px;
+    height: 10px;
+    background: #667eea;
+    border-radius: 50%;
+}
+
+.checkbox-option input:checked ~ .checkbox-custom::after {
+    content: '✓';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.radio-option input:checked ~ .radio-custom,
+.checkbox-option input:checked ~ .checkbox-custom {
+    background: #667eea;
+    border-color: #667eea;
+}
+
+.option-label {
     color: #2c3e50;
+    font-size: 16px;
+    font-weight: 500;
     cursor: pointer;
     flex: 1;
 }
@@ -1742,49 +1811,78 @@ body {
 .questions-actions {
     display: flex;
     justify-content: space-between;
-    margin-top: 30px;
-    gap: 15px;
+    margin-top: 40px;
+    gap: 20px;
 }
 
-.questions-actions button {
-    padding: 15px 30px;
+.questions-actions .btn-primary,
+.questions-actions .btn-secondary {
+    padding: 18px 35px;
     border: none;
-    border-radius: 10px;
+    border-radius: 12px;
     font-size: 16px;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
     flex: 1;
+    text-align: center;
 }
 
-.btn-primary {
-    background: linear-gradient(135deg, #3498db, #2980b9);
+.questions-actions .btn-primary {
+    background: linear-gradient(135deg, #667eea, #764ba2);
     color: white;
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
 }
 
-.btn-primary:hover {
-    background: linear-gradient(135deg, #2980b9, #1f5f8b);
-    transform: translateY(-2px);
+.questions-actions .btn-primary:hover {
+    background: linear-gradient(135deg, #5a6fd8, #6a4190);
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
 }
 
-.btn-secondary {
+.questions-actions .btn-secondary {
     background: #ecf0f1;
     color: #2c3e50;
+    border: 2px solid #bdc3c7;
 }
 
-.btn-secondary:hover {
+.questions-actions .btn-secondary:hover {
     background: #bdc3c7;
-    transform: translateY(-2px);
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
 }
 
-@keyframes slideIn {
-    from {
-        opacity: 0;
-        transform: translateY(-50px);
+/* Responsive design pour les questions */
+@media (max-width: 768px) {
+    .questions-section {
+        padding: 40px 0;
+        margin: 20px 0;
     }
-    to {
-        opacity: 1;
-        transform: translateY(0);
+    
+    .questions-form {
+        padding: 25px;
+    }
+    
+    .questions-header h2 {
+        font-size: 28px;
+    }
+    
+    .question-item {
+        padding: 20px;
+    }
+    
+    .question-item h3 {
+        font-size: 18px;
+    }
+    
+    .options-container {
+        grid-template-columns: 1fr;
+    }
+    
+    .questions-actions {
+        flex-direction: column;
     }
 }
 
