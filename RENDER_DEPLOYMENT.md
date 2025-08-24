@@ -7,6 +7,7 @@ Le serveur est maintenant optimisé pour Render avec :
 - ✅ CORS configuré pour Render
 - ✅ Variables d'environnement sécurisées
 - ✅ Logs détaillés pour debugging
+- ✅ Nouvelle clé API OpenAI
 
 ## 📋 Étapes de Déploiement Render
 
@@ -28,7 +29,7 @@ Le serveur est maintenant optimisé pour Render avec :
 Dans la section **"Environment Variables"**, ajoute exactement :
 
 ```
-OPENAI_API_KEY = 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
+OPENAI_API_KEY = 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
 NODE_ENV = production
 PORT = 10000
 ```
@@ -36,7 +37,7 @@ PORT = 10000
 ### 4. Déploiement
 - Clique sur **"Create Web Service"**
 - Attends 2-3 minutes pour le build et déploiement
-- Ton site sera sur : `https://tototravo.onrender.com`
+- Ton site sera accessible sur : `https://tototravo.onrender.com`
 
 ## 🔍 Test après Déploiement
 
@@ -84,10 +85,15 @@ curl https://tototravo.onrender.com/api/health
 
 ### 2. Vérifier les Variables d'Environnement
 - **Dashboard Render** → **Environment**
-- Vérifie que les 3 variables sont exactement comme ci-dessus
-- **Important:** Pas d'espaces avant/après les valeurs
+- Vérifie que `OPENAI_API_KEY` est bien configurée avec la nouvelle clé
+- Vérifie que `PORT=10000`
 
-### 3. Redémarrage
+### 3. Test API simple
+```bash
+curl https://tototravo.onrender.com/api/test
+```
+
+### 4. Redémarrage avec Cache Vidé
 - **Dashboard Render** → **Ton service** → **Manual Deploy** → **Clear build cache & deploy**
 
 ## 🎯 Points Clés Corrigés
@@ -98,6 +104,8 @@ curl https://tototravo.onrender.com/api/health
 ✅ **Variables d'environnement sécurisées**  
 ✅ **Port 10000 (standard Render)**  
 ✅ **Parsing JSON sécurisé**  
+✅ **Nouvelle clé API OpenAI**  
+✅ **Modèle gpt-4o (corrigé)**  
 
 ## 🌍 Ton Application en Production
 
