@@ -5,19 +5,27 @@ const path = require('path');
 const cors = require('cors');
 require('dotenv').config();
 
-// Debug des variables d'environnement
-console.log('🔍 Debug variables d\'environnement:');
+// Log de démarrage pour production
+console.log('🚀 Démarrage serveur TotoTravo');
 console.log('   PORT:', process.env.PORT);
 console.log('   NODE_ENV:', process.env.NODE_ENV);
-console.log('   OPENAI_API_KEY exists:', !!process.env.OPENAI_API_KEY);
-console.log('   OPENAI_API_KEY preview:', process.env.OPENAI_API_KEY ? process.env.OPENAI_API_KEY.substring(0, 20) + '...' : 'Non définie');
+console.log('   OPENAI_API_KEY configurée:', !!process.env.OPENAI_API_KEY);
 
 const app = express();
 
-// Configuration CORS pour Vercel
+// Configuration CORS pour Render et production
 app.use(cors({
-    origin: ['http://localhost:3000', 'https://*.vercel.app', 'https://*.now.sh'],
-    credentials: true
+    origin: [
+        'http://localhost:3000', 
+        'http://localhost:5000',
+        'https://*.vercel.app', 
+        'https://*.now.sh',
+        'https://*.onrender.com',
+        'https://tototravo.onrender.com'
+    ],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 // Middleware
@@ -186,7 +194,7 @@ FORMAT JSON OBLIGATOIRE (réponds exactement comme ça):
 IMPORTANT: Réponds UNIQUEMENT avec le JSON, sans \`\`\`json ni texte avant/après.`;
 
         const requestData = {
-            model: 'gpt-5o',
+            model: 'gpt-4o',
             messages: [
                 {
                     role: 'system',
@@ -225,13 +233,17 @@ IMPORTANT: Réponds UNIQUEMENT avec le JSON, sans \`\`\`json ni texte avant/apr�
             console.error('❌ Erreur API OpenAI:', apiError.response?.status, apiError.response?.statusText);
             console.error('❌ Détails erreur:', apiError.response?.data);
             console.error('❌ Message erreur:', apiError.message);
+            console.error('❌ URL appelée:', OPENAI_API_URL);
+            console.error('❌ Modèle utilisé:', requestData.model);
             
             if (apiError.response?.status === 401) {
-                throw new Error('Clé API OpenAI invalide ou expirée');
+                throw new Error('Clé API OpenAI invalide ou expirée - Vérifiez OPENAI_API_KEY');
             } else if (apiError.response?.status === 429) {
-                throw new Error('Limite de requêtes OpenAI dépassée');
+                throw new Error('Limite de requêtes OpenAI dépassée - Réessayez plus tard');
             } else if (apiError.response?.status === 400) {
                 throw new Error('Requête OpenAI invalide: ' + JSON.stringify(apiError.response?.data));
+            } else if (apiError.response?.status === 404) {
+                throw new Error('Modèle OpenAI non trouvé - Vérifiez le nom du modèle');
             } else {
                 throw new Error('Erreur API OpenAI: ' + apiError.message);
             }
@@ -370,7 +382,7 @@ INSTRUCTIONS:
 - Sois direct et utile`;
 
         const requestData = {
-            model: 'gpt-5o',
+            model: 'gpt-4o',
             messages: [
                 {
                     role: 'system',
@@ -405,28 +417,42 @@ INSTRUCTIONS:
 // Routes
 app.post('/api/analyze-images', upload.array('images', 5), async (req, res) => {
     console.log('📥 Requête analyse reçue');
+    console.log('🔍 Headers:', req.headers);
+    console.log('📊 Body keys:', Object.keys(req.body));
     
     try {
         if (!req.files || req.files.length === 0) {
+            console.error('❌ Aucune image fournie');
             return res.status(400).json({ error: 'Aucune image fournie' });
         }
 
         console.log('📸 Images reçues:', req.files.length);
+        console.log('📸 Types d\'images:', req.files.map(f => f.mimetype));
         
-        const userProfile = req.body.userProfile ? JSON.parse(req.body.userProfile) : {};
-        const description = req.body.description || ''; // Get description from request body
+        let userProfile = {};
+        let description = '';
+        
+        try {
+            userProfile = req.body.userProfile ? JSON.parse(req.body.userProfile) : {};
+            description = req.body.description || '';
+        } catch (parseError) {
+            console.error('❌ Erreur parsing userProfile:', parseError);
+            userProfile = {};
+            description = req.body.description || '';
+        }
         
         console.log('👤 Profil utilisateur:', userProfile);
         console.log('📝 Description du projet:', description);
         
-        // Analyser avec DeepSeek Chat
+        // Analyser avec OpenAI
         const analysis = await analyzeImagesWithAI(req.files, userProfile, description);
         
         const result = {
             images: req.files.map(file => ({
                 filename: file.originalname,
                 originalname: file.originalname,
-                path: `/uploads/${file.originalname}` // Assuming file.originalname is the filename
+                size: file.size,
+                mimetype: file.mimetype
             })),
             travaux: analysis
         };
@@ -435,8 +461,15 @@ app.post('/api/analyze-images', upload.array('images', 5), async (req, res) => {
         res.json(result);
         
     } catch (error) {
-        console.error('❌ Erreur analyse:', error.message);
-        res.status(500).json({ error: error.message });
+        console.error('❌ Erreur analyse complète:', error);
+        console.error('❌ Stack trace:', error.stack);
+        
+        // Réponse d'erreur plus détaillée pour le debugging
+        res.status(500).json({ 
+            error: 'Erreur lors de l\'analyse des images',
+            message: error.message,
+            timestamp: new Date().toISOString()
+        });
     }
 });
 
