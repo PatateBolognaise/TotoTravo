@@ -420,20 +420,30 @@ function startNewAnalysis() {
 
 // Results display functions
 function displayResults(result) {
-    if (!result.travaux) {
-        showError('Format de réponse invalide');
+    console.log('Résultat reçu:', result);
+    
+    // Vérifier si on a une analyse directe ou dans result.analysis
+    const analysis = result.analysis || result;
+    
+    if (!analysis || (!analysis.pieces && !analysis.travaux)) {
+        showError('Format de réponse invalide - Aucune analyse trouvée');
+        console.error('Format invalide:', result);
         return;
     }
     
     currentAnalysis = result;
     
-    // Mettre à jour les statistiques globales
-    updateGlobalStats(result.travaux.analyse_globale || {});
+    // Adapter selon le format reçu
+    const pieces = analysis.pieces || analysis.travaux?.pieces || [];
+    const analyseGlobale = analysis.analyse_globale || analysis.travaux?.analyse_globale || {};
     
-    displayPieces(result.travaux.pieces || []);
-    displayTravauxArtisan(result.travaux.analyse_globale || {});
-    displayTravauxBricolage(result.travaux.analyse_globale || {});
-    displayPlanning(result.travaux.analyse_globale || {});
+    // Mettre à jour les statistiques globales
+    updateGlobalStats(analyseGlobale);
+    
+    displayPieces(pieces);
+    displayTravauxArtisan(analyseGlobale);
+    displayTravauxBricolage(analyseGlobale);
+    displayPlanning(analyseGlobale);
 }
 
 function updateGlobalStats(analyseGlobale) {
@@ -454,6 +464,29 @@ function updateGlobalStats(analyseGlobale) {
     if (difficultyElement && analyseGlobale.niveau_difficulte) {
         difficultyElement.textContent = `${analyseGlobale.niveau_difficulte}%`;
     }
+    
+    // Mettre à jour les coûts détaillés
+    const materialsCostElement = document.getElementById('materialsCost');
+    if (materialsCostElement && analyseGlobale.cout_materiaux_total) {
+        materialsCostElement.textContent = `${analyseGlobale.cout_materiaux_total}€`;
+    }
+    
+    const laborCostElement = document.getElementById('laborCost');
+    if (laborCostElement && analyseGlobale.cout_main_oeuvre_total) {
+        laborCostElement.textContent = `${analyseGlobale.cout_main_oeuvre_total}€`;
+    }
+    
+    const furnitureCostElement = document.getElementById('furnitureCost');
+    if (furnitureCostElement && analyseGlobale.cout_meubles_total) {
+        furnitureCostElement.textContent = `${analyseGlobale.cout_meubles_total}€`;
+    }
+    
+    // Mettre à jour le score global
+    const scoreElement = document.getElementById('globalScore');
+    if (scoreElement && analyseGlobale.score_global) {
+        scoreElement.textContent = analyseGlobale.score_global;
+        scoreElement.className = `score-badge ${analyseGlobale.score_global}`;
+    }
 }
 
 function displayPieces(pieces) {
@@ -471,10 +504,33 @@ function displayPieces(pieces) {
                 <h3><i class="fas fa-home"></i> ${piece.nom}</h3>
                 <span class="priority-badge ${piece.priorite_globale || 'moyenne'}">${piece.priorite_globale || 'moyenne'}</span>
             </div>
+            
+            <!-- Métrage et dimensions -->
+            <div class="piece-metrics">
+                <h4><i class="fas fa-ruler-combined"></i> Métrage :</h4>
+                <p><strong>Surface :</strong> ${piece.surface_estimee || 'Non estimée'}</p>
+                <p><strong>Dimensions :</strong> ${piece.dimensions || 'Non spécifiées'}</p>
+            </div>
+            
+            <!-- Éléments identifiés -->
+            ${piece.elements_identifies ? `
+            <div class="piece-elements">
+                <h4><i class="fas fa-list"></i> Éléments identifiés :</h4>
+                ${piece.elements_identifies.map(element => `
+                    <div class="element-item">
+                        <span class="element-type">${element.type}</span>
+                        <span class="element-state ${element.etat}">${element.etat}</span>
+                        <p>${element.description}</p>
+                    </div>
+                `).join('')}
+            </div>
+            ` : ''}
+            
             <div class="piece-state">
                 <h4>État actuel :</h4>
                 <p>${piece.etat}</p>
             </div>
+            
             <div class="piece-works">
                 <h4>Travaux nécessaires :</h4>
                 ${piece.travaux ? piece.travaux.map(travail => `
@@ -484,8 +540,46 @@ function displayPieces(pieces) {
                             <span class="work-type ${travail.type_execution}">${travail.type_execution}</span>
                         </div>
                         <p class="work-description">${travail.description}</p>
+                        
+                        <!-- Surface ou quantité -->
+                        ${travail.surface_ou_quantite ? `
+                        <div class="work-surface">
+                            <strong>Surface/Quantité :</strong> ${travail.surface_ou_quantite}
+                        </div>
+                        ` : ''}
+                        
+                        <!-- Matériaux nécessaires -->
+                        ${travail.materiaux_necessaires ? `
+                        <div class="work-materials">
+                            <h6><i class="fas fa-tools"></i> Matériaux nécessaires :</h6>
+                            ${travail.materiaux_necessaires.map(materiau => `
+                                <div class="material-item">
+                                    <div class="material-info">
+                                        <strong>${materiau.nom}</strong> - ${materiau.marque}
+                                        <span class="material-quantity">${materiau.quantite}</span>
+                                    </div>
+                                    <div class="material-price">
+                                        <span class="price-unit">${materiau.prix_unitaire}€/unité</span>
+                                        <span class="price-total">${materiau.prix_total}€</span>
+                                    </div>
+                                    <div class="material-store">
+                                        <i class="fas fa-shopping-cart"></i> ${materiau.magasin}
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                        ` : ''}
+                        
                         <div class="work-details">
                             <div class="work-cost">
+                                <span class="label">Coût matériaux :</span>
+                                <span class="value">${travail.cout_materiaux || 0}€</span>
+                            </div>
+                            <div class="work-cost">
+                                <span class="label">Main d'œuvre :</span>
+                                <span class="value">${travail.cout_main_oeuvre || 0}€</span>
+                            </div>
+                            <div class="work-cost total">
                                 <span class="label">Coût total :</span>
                                 <span class="value">${travail.cout_total}€</span>
                             </div>
@@ -498,14 +592,67 @@ function displayPieces(pieces) {
                                 <span class="value ${travail.priorite}">${travail.priorite}</span>
                             </div>
                         </div>
+                        
+                        <!-- Produits recommandés -->
+                        ${travail.produits_recommandes ? `
+                        <div class="work-products">
+                            <h6><i class="fas fa-star"></i> Produits recommandés :</h6>
+                            <div class="products-list">
+                                ${travail.produits_recommandes.map(produit => `
+                                    <span class="product-tag">${produit}</span>
+                                `).join('')}
+                            </div>
+                        </div>
+                        ` : ''}
+                        
                         <div class="work-advice">
                             <strong>Conseils :</strong> ${travail.conseils}
                         </div>
                     </div>
                 `).join('') : '<p>Aucun travail spécifique identifié</p>'}
             </div>
+            
+            <!-- Meubles et équipements -->
+            ${piece.meubles_equipements ? `
+            <div class="piece-furniture">
+                <h4><i class="fas fa-couch"></i> Meubles et équipements :</h4>
+                ${piece.meubles_equipements.map(meuble => `
+                    <div class="furniture-item">
+                        <div class="furniture-header">
+                            <h5>${meuble.nom}</h5>
+                            <span class="furniture-type">${meuble.type}</span>
+                        </div>
+                        <div class="furniture-details">
+                            <p><strong>Dimensions :</strong> ${meuble.dimensions}</p>
+                            <p><strong>Prix estimé :</strong> ${meuble.prix_estime}€</p>
+                            <div class="furniture-brands">
+                                <strong>Marques recommandées :</strong>
+                                ${meuble.marques_recommandees.map(marque => `
+                                    <span class="brand-tag">${marque}</span>
+                                `).join('')}
+                            </div>
+                            <p class="furniture-advice"><strong>Conseils d'achat :</strong> ${meuble.conseils_achat}</p>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+            ` : ''}
+            
             <div class="piece-total">
-                <strong>Coût total de la pièce : ${piece.cout_total_piece}€</strong>
+                <div class="total-breakdown">
+                    <div class="total-item">
+                        <span class="label">Matériaux :</span>
+                        <span class="value">${piece.cout_materiaux_piece || 0}€</span>
+                    </div>
+                    <div class="total-item">
+                        <span class="label">Main d'œuvre :</span>
+                        <span class="value">${piece.cout_main_oeuvre_piece || 0}€</span>
+                    </div>
+                    <div class="total-item total">
+                        <span class="label">Total pièce :</span>
+                        <span class="value">${piece.cout_total_piece}€</span>
+                    </div>
+                </div>
             </div>
         </div>
     `).join('');
