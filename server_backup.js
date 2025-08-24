@@ -1,31 +1,24 @@
 const express = require('express');
 const multer = require('multer');
 const axios = require('axios');
-const cors = require('cors');
 const path = require('path');
+const cors = require('cors');
 require('dotenv').config();
+
+// Log de démarrage pour production
+console.log('🚀 Démarrage serveur TotoTravo');
+console.log('   PORT:', process.env.PORT);
+console.log('   NODE_ENV:', process.env.NODE_ENV);
+console.log('   OPENAI_API_KEY configurée:', !!process.env.OPENAI_API_KEY);
 
 const app = express();
 
-// Configuration des variables d'environnement
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
-const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
-const PORT = process.env.PORT || 10000;
-
-// Vérification de la configuration
-if (!OPENAI_API_KEY) {
-    console.error('❌ ERREUR: OPENAI_API_KEY non configurée');
-    console.error('❌ Configurez OPENAI_API_KEY dans les variables d\'environnement Render');
-    console.error('❌ Ou ajoutez-la dans un fichier .env pour le développement local');
-    process.exit(1);
-}
-
-// Configuration CORS
+// Configuration CORS pour Render et production
 app.use(cors({
     origin: [
-        'http://localhost:3000',
+        'http://localhost:3000', 
         'http://localhost:5000',
-        'https://*.vercel.app',
+        'https://*.vercel.app', 
         'https://*.now.sh',
         'https://*.onrender.com',
         'https://tototravo.onrender.com'
@@ -35,7 +28,45 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// Configuration Multer pour le stockage en mémoire
+// Middleware
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+
+// Servir les fichiers statiques
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Route pour la page d'accueil
+app.get('/', (req, res) => {
+    try {
+        console.log('📄 Demande page d\'accueil');
+        res.sendFile(path.join(__dirname, 'public', 'index.html'));
+    } catch (error) {
+        console.error('❌ Erreur page d\'accueil:', error);
+        res.status(500).json({ error: 'Erreur chargement page d\'accueil' });
+    }
+});
+
+// Configuration
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
+const PORT = process.env.PORT || 8080;
+
+// Debug des variables d'environnement
+console.log('🔍 Debug variables d\'environnement:');
+console.log('   PORT:', process.env.PORT);
+console.log('   NODE_ENV:', process.env.NODE_ENV);
+console.log('   OPENAI_API_KEY existe:', !!process.env.OPENAI_API_KEY);
+console.log('   OPENAI_API_KEY preview:', process.env.OPENAI_API_KEY ? process.env.OPENAI_API_KEY.substring(0, 20) + '...' : 'Non définie');
+
+// Vérification de la configuration
+if (!OPENAI_API_KEY) {
+    console.error('❌ ERREUR: OPENAI_API_KEY non configurée');
+    console.error('❌ Configurez OPENAI_API_KEY dans les variables d\'environnement Render');
+    console.error('❌ Ou ajoutez-la dans un fichier .env pour le développement local');
+    process.exit(1);
+}
+
+// Configuration Multer pour Vercel (mémoire uniquement)
 const upload = multer({
     storage: multer.memoryStorage(),
     limits: {
@@ -43,6 +74,7 @@ const upload = multer({
         files: 5 // 5 fichiers max
     },
     fileFilter: (req, file, cb) => {
+        // Vérifier le type de fichier
         if (file.mimetype.startsWith('image/')) {
             cb(null, true);
         } else {
@@ -480,23 +512,24 @@ IMPORTANT:
                             difficulte: "moyen"
                         }
                     ],
-                    planning: {
-                        phase1_duree: "1 semaine",
-                        phase1_taches: ["Préparation", "Démolition"],
-                        phase1_details: "Démontage des éléments existants et préparation des surfaces",
-                        phase2_duree: "2 semaines",
-                        phase2_taches: ["Installation", "Rénovation"],
-                        phase2_details: "Installation des nouveaux éléments et rénovation des structures",
-                        phase3_duree: "1 semaine",
-                        phase3_taches: ["Finitions", "Peinture"],
-                        phase3_details: "Finitions, peinture et nettoyage final",
-                        duree_totale: "4 semaines"
-                    },
-                    recommandations: {
-                        priorites: ["Rénovation structurelle", "Installation électrique", "Finitions"],
-                        economies_possibles: "Achetez les matériaux en gros, négociez avec les artisans",
-                        investissements_rentables: "Isolation thermique, éclairage LED, robinetterie économique",
-                        conseils_securite: "Portez des équipements de protection, aérez pendant les travaux"
+                        planning: {
+                            phase1_duree: "1 semaine",
+                            phase1_taches: ["Préparation", "Démolition"],
+                            phase1_details: "Démontage des éléments existants et préparation des surfaces",
+                            phase2_duree: "2 semaines",
+                            phase2_taches: ["Installation", "Rénovation"],
+                            phase2_details: "Installation des nouveaux éléments et rénovation des structures",
+                            phase3_duree: "1 semaine",
+                            phase3_taches: ["Finitions", "Peinture"],
+                            phase3_details: "Finitions, peinture et nettoyage final",
+                            duree_totale: "4 semaines"
+                        },
+                        recommandations: {
+                            priorites: ["Rénovation structurelle", "Installation électrique", "Finitions"],
+                            economies_possibles: "Achetez les matériaux en gros, négociez avec les artisans",
+                            investissements_rentables: "Isolation thermique, éclairage LED, robinetterie économique",
+                            conseils_securite: "Portez des équipements de protection, aérez pendant les travaux"
+                        }
                     }
                 }
             };
@@ -594,27 +627,33 @@ app.post('/api/analyze-images', upload.array('images', 5), async (req, res) => {
         
         const result = {
             images: req.files.map(file => ({
-                name: file.originalname,
+                filename: file.originalname,
+                originalname: file.originalname,
                 size: file.size,
-                type: file.mimetype
+                mimetype: file.mimetype
             })),
-            analysis: analysis,
-            timestamp: new Date().toISOString()
+            travaux: analysis
         };
         
-        console.log('✅ Analyse terminée avec succès');
+        console.log('🎉 Analyse terminée avec succès');
         res.json(result);
+        
     } catch (error) {
-        console.error('❌ Erreur analyse:', error.message);
+        console.error('❌ Erreur analyse complète:', error);
+        console.error('❌ Stack trace:', error.stack);
+        
+        // Réponse d'erreur plus détaillée pour le debugging
         res.status(500).json({ 
             error: 'Erreur lors de l\'analyse des images',
-            details: error.message 
+            message: error.message,
+            timestamp: new Date().toISOString()
         });
     }
 });
 
-// Route pour le chatbot
 app.post('/api/chat', async (req, res) => {
+    console.log('💬 Requête chatbot reçue');
+    
     try {
         const { message, projectContext } = req.body;
         
@@ -622,20 +661,17 @@ app.post('/api/chat', async (req, res) => {
             return res.status(400).json({ error: 'Message requis' });
         }
         
-        const response = await chatWithAI(message, projectContext || '');
+        const response = await chatWithAI(message, projectContext);
         res.json({ response });
+        
     } catch (error) {
         console.error('❌ Erreur chatbot:', error.message);
-        res.status(500).json({ 
-            error: 'Erreur lors de l\'envoi du message',
-            details: error.message 
-        });
+        res.status(500).json({ error: 'Erreur chatbot' });
     }
 });
 
-// Route de test
 app.get('/api/test', (req, res) => {
-    res.json({
+    res.json({ 
         message: 'API TotoTravo fonctionne!',
         timestamp: new Date().toISOString(),
         environment: process.env.NODE_ENV || 'development',
@@ -645,59 +681,41 @@ app.get('/api/test', (req, res) => {
     });
 });
 
-// Route de santé pour Render
-app.get('/api/health', (req, res) => {
-    res.json({
-        status: 'healthy',
+// Gestion d'erreurs globale
+app.use((error, req, res, next) => {
+    console.error('❌ Erreur serveur:', error);
+    console.error('❌ Stack trace:', error.stack);
+    console.error('❌ URL:', req.url);
+    console.error('❌ Method:', req.method);
+    console.error('❌ Headers:', req.headers);
+    
+    res.status(500).json({
+        error: 'Erreur interne du serveur',
+        message: error.message,
         timestamp: new Date().toISOString(),
-        uptime: process.uptime()
+        url: req.url,
+        method: req.method
     });
 });
 
-// Servir les fichiers statiques
-app.use(express.static('public'));
-
-// Route principale
-app.get('/', (req, res) => {
-    try {
-        res.sendFile(path.join(__dirname, 'public', 'index.html'));
-    } catch (error) {
-        console.error('❌ Erreur serveur fichier:', error.message);
-        res.status(500).send('Erreur serveur');
-    }
-});
-
-// Middleware de gestion d'erreur global
-app.use((error, req, res, next) => {
-    console.error('❌ Erreur serveur:', error);
-    console.error('📄 URL:', req.url);
-    console.error('🔧 Méthode:', req.method);
-    console.error('📋 Headers:', req.headers);
-    
-    res.status(500).json({
-        error: 'Erreur serveur interne',
-        message: error.message,
-        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+// Route de santé pour Vercel
+app.get('/api/health', (req, res) => {
+    res.json({
+        status: 'OK',
+        timestamp: new Date().toISOString(),
+        environment: process.env.NODE_ENV || 'development'
     });
 });
 
 // Démarrage du serveur
-console.log('🚀 Démarrage serveur TotoTravo');
-console.log('   PORT:', PORT);
-console.log('   NODE_ENV:', process.env.NODE_ENV);
-console.log('   OPENAI_API_KEY configurée:', !!OPENAI_API_KEY);
-
-console.log('🔍 Debug variables d\'environnement:');
-console.log('   PORT:', process.env.PORT);
-console.log('   NODE_ENV:', process.env.NODE_ENV);
-console.log('   OPENAI_API_KEY existe:', !!OPENAI_API_KEY);
-console.log('   OPENAI_API_KEY preview:', OPENAI_API_KEY ? OPENAI_API_KEY.substring(0, 20) + '...' : 'Non définie');
-
 app.listen(PORT, () => {
-    console.log('🔑 Configuration:');
-    console.log('   OPENAI_API_KEY:', OPENAI_API_KEY ? OPENAI_API_KEY.substring(0, 20) + '...' : 'Non configurée');
+            console.log('🔑 Configuration:');
+        console.log('   OPENAI_API_KEY: [CONFIGURÉE]');
     console.log('   PORT:', PORT);
     console.log('🚀 Serveur démarré sur http://localhost:' + PORT);
     console.log('🌍 Environnement:', process.env.NODE_ENV || 'development');
 });
+
+// Export pour Vercel
+module.exports = app;
 
