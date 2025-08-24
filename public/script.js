@@ -97,7 +97,13 @@ function initializeEventListeners() {
 // Questionnaire functions
 function initializeQuestionnaire() {
     const questionnaireSection = document.getElementById('questionnaireSection');
-    if (!questionnaireSection) return;
+    if (!questionnaireSection) {
+        console.error('Section questionnaire non trouvée');
+        return;
+    }
+    
+    // S'assurer que la section questionnaire est visible
+    questionnaireSection.style.display = 'block';
     
     // Add progress indicator
     const questionnaire = questionnaireSection.querySelector('.questionnaire');
@@ -114,7 +120,11 @@ function initializeQuestionnaire() {
         questionnaire.insertAdjacentHTML('afterbegin', progressHtml);
     }
     
+    // Initialiser l'interface
+    currentQuestion = 1;
     updateQuestionnaireUI();
+    
+    console.log('Questionnaire initialisé');
 }
 
 function updateQuestionnaireUI() {
@@ -131,9 +141,21 @@ function updateQuestionnaireUI() {
     const nextBtn = document.getElementById('nextBtn');
     const finishBtn = document.getElementById('finishBtn');
     
-    if (prevBtn) prevBtn.style.display = currentQuestion > 1 ? 'block' : 'none';
-    if (nextBtn) nextBtn.style.display = currentQuestion < totalQuestions ? 'block' : 'none';
-    if (finishBtn) finishBtn.style.display = currentQuestion === totalQuestions ? 'block' : 'none';
+    // S'assurer que les boutons sont visibles
+    if (prevBtn) {
+        prevBtn.style.display = currentQuestion > 1 ? 'inline-flex' : 'none';
+        prevBtn.style.visibility = currentQuestion > 1 ? 'visible' : 'hidden';
+    }
+    
+    if (nextBtn) {
+        nextBtn.style.display = currentQuestion < totalQuestions ? 'inline-flex' : 'none';
+        nextBtn.style.visibility = currentQuestion < totalQuestions ? 'visible' : 'hidden';
+    }
+    
+    if (finishBtn) {
+        finishBtn.style.display = currentQuestion === totalQuestions ? 'inline-flex' : 'none';
+        finishBtn.style.visibility = currentQuestion === totalQuestions ? 'visible' : 'hidden';
+    }
     
     // Update progress dots
     document.querySelectorAll('.progress-dot').forEach((dot, index) => {
@@ -154,6 +176,9 @@ function updateQuestionnaireUI() {
             finishBtn.disabled = !selectedOption;
         }
     }
+    
+    console.log('Question actuelle:', currentQuestion);
+    console.log('Boutons - Précédent:', prevBtn?.style.display, 'Suivant:', nextBtn?.style.display, 'Terminer:', finishBtn?.style.display);
 }
 
 function previousQuestion() {
