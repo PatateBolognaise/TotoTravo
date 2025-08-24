@@ -1,43 +1,11 @@
 const express = require('express');
-const cors = require('cors');
 const multer = require('multer');
 const axios = require('axios');
 const path = require('path');
-const fs = require('fs');
+const cors = require('cors');
 require('dotenv').config();
 
 const app = express();
-// Configuration
-const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY || 'sk-872ba319f3d0467f9c3167e00654c333';
-const DEEPSEEK_API_URL = 'https://api.deepseek.com/v1/chat/completions';
-const PORT = process.env.PORT || 3000;
-
-// Configuration Multer
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        const uploadDir = 'uploads/';
-        if (!fs.existsSync(uploadDir)) {
-            fs.mkdirSync(uploadDir, { recursive: true });
-        }
-        cb(null, uploadDir);
-    },
-    filename: (req, file, cb) => {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
-    }
-});
-
-const upload = multer({ 
-    storage: storage,
-    limits: { fileSize: 10 * 1024 * 1024, files: 5 },
-    fileFilter: (req, file, cb) => {
-        if (file.mimetype.startsWith('image/')) {
-            cb(null, true);
-        } else {
-            cb(new Error('Seules les images sont autorisées'), false);
-        }
-    }
-});
 
 // Configuration CORS pour Vercel
 app.use(cors({
@@ -46,103 +14,127 @@ app.use(cors({
 }));
 
 // Middleware
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use(express.static('public'));
-app.use('/uploads', express.static('uploads'));
 
-console.log('🔑 Configuration:');
-console.log('   DEEPSEEK_API_KEY:', DEEPSEEK_API_KEY.substring(0, 20) + '...');
-console.log('   PORT:', PORT);
+// Configuration
+const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY || 'sk-872ba319f3d0467f9c3167e00654c333';
+const DEEPSEEK_API_URL = 'https://api.deepseek.com/v1/chat/completions';
+const PORT = process.env.PORT || 3000;
+
+// Configuration Multer pour Vercel (mémoire uniquement)
+const upload = multer({
+    storage: multer.memoryStorage(),
+    limits: {
+        fileSize: 10 * 1024 * 1024, // 10MB max
+        files: 5 // 5 fichiers max
+    },
+    fileFilter: (req, file, cb) => {
+        // Vérifier le type de fichier
+        if (file.mimetype.startsWith('image/')) {
+            cb(null, true);
+        } else {
+            cb(new Error('Seuls les fichiers images sont autorisés'), false);
+        }
+    }
+});
 
 // Fonction pour analyser les images avec DeepSeek Chat
-async function analyzeImagesWithAI(imageFiles, description = '', userProfile = {}) {
+async function analyzeImagesWithAI(files, userProfile) {
     try {
-        console.log('📸 Analyse de', imageFiles.length, 'images avec DeepSeek');
+        console.log('📸 Analyse de', files.length, 'images avec DeepSeek');
         
-        // Créer une description des images basée sur leurs métadonnées
-        const imageInfo = imageFiles.map((file, index) => {
-            const sizeKB = Math.round(file.size / 1024);
-            const dimensions = `${file.originalname} (${sizeKB}KB, ${file.mimetype})`;
-            return `Image ${index + 1}: ${dimensions}`;
-        }).join('\n');
-        
-        // Prompt simplifié et efficace pour l'analyse d'images
-        const prompt = `Tu es un artisan expert en rénovation. Analyse ces images et donne une estimation réaliste.
+        // Préparer les métadonnées des images
+        const imageMetadata = files.map(file => ({
+            filename: file.originalname,
+            size: file.size,
+            mimetype: file.mimetype,
+            description: `Image ${file.originalname} de ${file.size} bytes, type ${file.mimetype}`
+        }));
 
-PROFIL: ${userProfile.niveau_bricolage || 'standard'} - ${userProfile.budget || 'moyen'} - ${userProfile.delai || 'normal'}
-IMAGES: ${imageInfo}
-PROJET: ${description || 'Rénovation générale'}
+        // Créer la description des images pour l'IA
+        const imagesDescription = imageMetadata.map(img => 
+            `- ${img.filename}: ${img.size} bytes, ${img.mimetype}`
+        ).join('\n');
+
+        console.log('📤 Envoi à DeepSeek Chat...');
+        
+        const prompt = `Tu es un expert artisan en rénovation immobilière. Analyse ces images de pièces à rénover et fournis une estimation détaillée des travaux nécessaires.
+
+IMAGES À ANALYSER:
+${imagesDescription}
+
+PROFIL UTILISATEUR:
+- Niveau bricolage: ${userProfile.niveau_bricolage}
+- Budget: ${userProfile.budget}
+- Délai: ${userProfile.delai}
+- Implication: ${userProfile.implication}
+- Type projet: ${userProfile.type_projet}
 
 INSTRUCTIONS:
-- Identifie les pièces visibles dans les images
-- Décris l'état actuel de chaque pièce
-- Liste les travaux nécessaires avec prix RÉALISTES 2024
-- Distingue artisan vs bricolage selon le profil
+1. Identifie chaque pièce visible dans les images
+2. Évalue l'état actuel (bon, moyen, mauvais)
+3. Liste les travaux nécessaires avec coûts détaillés
+4. Distingue travaux artisan vs bricolage
+5. Fournis un planning réaliste
+6. Utilise des prix 2024 réalistes
 
-PRIX RÉALISTES 2024:
-- Peinture: 15-25€/m², Carrelage: 40-80€/m², Électricité: 80-150€/point
-- Vidéoprojecteur: 300-800€ (pas 5500€!), Plomberie: 200-500€/point
-
-ADAPTATION PROFIL:
-- Budget "serré": Matériaux basiques, bricolage maximum
-- Budget "confortable": Matériaux qualité, artisan si nécessaire
-- Niveau "débutant": Artisan pour tout sauf peinture
-- Niveau "expert": Bricolage maximum, artisan électricité/plomberie
-
-Réponds en JSON SIMPLE sans caractères spéciaux:
-
+RÉPONSE ATTENDUE (JSON uniquement):
 {
   "pieces": [
     {
-      "nom": "Nom pièce",
-      "etat": "Description courte",
+      "nom": "Nom de la pièce",
+      "etat": "Description de l'état",
+      "surface_estimee": "XXm²",
       "travaux": [
         {
-          "nom": "Travail",
-          "description": "Description courte",
-          "type_execution": "artisan",
-          "cout_materiaux": 500,
-          "cout_main_oeuvre": 800,
-          "cout_total": 1300,
-          "duree_estimee": "2-3 jours",
-          "priorite": "haute",
-          "conseils": "Conseils courts"
+          "nom": "Nom du travail",
+          "description": "Description détaillée",
+          "type_execution": "artisan ou bricolage",
+          "cout_materiaux": 1000,
+          "cout_main_oeuvre": 2000,
+          "cout_total": 3000,
+          "duree_estimee": "X semaines",
+          "priorite": "haute/moyenne/basse",
+          "conseils": "Conseils spécifiques"
         }
       ],
       "cout_total_piece": 5000
     }
   ],
   "analyse_globale": {
-    "score_global": "moyen",
-    "niveau_difficulte": 65,
-    "cout_total": 20000,
-    "commentaire_general": "Commentaire court",
+    "score_global": "bon/moyen/mauvais",
+    "niveau_difficulte": 75,
+    "cout_total": 15000,
+    "duree_totale": "8 semaines",
+    "commentaire_general": "Analyse globale",
     "travaux_artisan": [
       {
         "nom": "Travail artisan",
         "description": "Description",
-        "cout": 1500,
-        "duree": "3-5 jours",
-        "raison_artisan": "Pourquoi artisan"
+        "cout": 8000,
+        "duree": "4 semaines",
+        "raison_artisan": "Pourquoi faire appel à un artisan"
       }
     ],
     "travaux_bricolage": [
       {
         "nom": "Travail bricolage",
         "description": "Description",
-        "cout_materiaux": 300,
-        "duree": "1-2 jours",
-        "conseils_bricolage": "Conseils bricolage"
+        "cout_materiaux": 2000,
+        "duree": "2 semaines",
+        "conseils_bricolage": "Conseils pour le bricolage"
       }
     ],
     "planning": {
-      "phase1_duree": "1-2 semaines",
+      "phase1_duree": "2 semaines",
       "phase1_taches": ["Démolition", "Préparation"],
-      "phase2_duree": "2-4 semaines",
+      "phase2_duree": "4 semaines", 
       "phase2_taches": ["Installation", "Rénovation"],
-      "phase3_duree": "1 semaine",
+      "phase3_duree": "2 semaines",
       "phase3_taches": ["Finitions", "Peinture"],
-      "duree_totale": "4-7 semaines"
+      "duree_totale": "8 semaines"
     }
   }
 }`;
@@ -381,19 +373,18 @@ app.post('/api/analyze-images', upload.array('images', 5), async (req, res) => {
 
         console.log('📸 Images reçues:', req.files.length);
         
-        const description = req.body.description || '';
         const userProfile = req.body.userProfile ? JSON.parse(req.body.userProfile) : {};
         
         console.log('👤 Profil utilisateur:', userProfile);
         
         // Analyser avec DeepSeek Chat
-        const analysis = await analyzeImagesWithAI(req.files, description, userProfile);
+        const analysis = await analyzeImagesWithAI(req.files, userProfile);
         
         const result = {
             images: req.files.map(file => ({
-                filename: file.filename,
+                filename: file.originalname,
                 originalname: file.originalname,
-                path: `/uploads/${file.filename}`
+                path: `/uploads/${file.originalname}` // Assuming file.originalname is the filename
             })),
             travaux: analysis
         };
@@ -430,17 +421,35 @@ app.get('/api/test', (req, res) => {
     res.json({ message: 'API TotoTravo fonctionne!' });
 });
 
-// Gestion erreurs
+// Gestion d'erreurs globale
 app.use((error, req, res, next) => {
-    if (error instanceof multer.MulterError) {
-        return res.status(400).json({ error: 'Erreur upload fichier' });
-    }
-    
     console.error('❌ Erreur serveur:', error);
-    res.status(500).json({ error: 'Erreur interne' });
+    res.status(500).json({
+        error: 'Erreur interne du serveur',
+        message: error.message,
+        timestamp: new Date().toISOString()
+    });
 });
 
-app.listen(PORT, () => {
-    console.log(`🚀 Serveur démarré sur http://localhost:${PORT}`);
+// Route de santé pour Vercel
+app.get('/api/health', (req, res) => {
+    res.json({
+        status: 'OK',
+        timestamp: new Date().toISOString(),
+        environment: process.env.NODE_ENV || 'development'
+    });
 });
+
+// Démarrage du serveur
+if (process.env.NODE_ENV !== 'production') {
+    app.listen(PORT, () => {
+        console.log('🔑 Configuration:');
+        console.log('   DEEPSEEK_API_KEY:', DEEPSEEK_API_KEY.substring(0, 20) + '...');
+        console.log('   PORT:', PORT);
+        console.log('🚀 Serveur démarré sur http://localhost:' + PORT);
+    });
+}
+
+// Export pour Vercel
+module.exports = app;
 
