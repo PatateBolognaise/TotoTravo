@@ -792,164 +792,149 @@ app.post('/api/get-questions', (req, res) => {
     }
 });
 
-// Fonction pour générer des questions dynamiques selon le profil
+// Fonction pour générer des questions dynamiques intelligentes
 function generateDynamicQuestions(userProfile, description = '') {
     const questions = [];
     
-    // Questions de base pour tous les profils
+    // Question de style universelle mais plus pertinente
     questions.push({
-        id: 'style_prefere',
-        question: 'Quel style préférez-vous pour votre projet ?',
+        id: 'ambiance_souhaitee',
+        question: 'Quelle ambiance souhaitez-vous créer ?',
         type: 'radio',
         options: [
-            { value: 'moderne', label: 'Moderne et épuré' },
-            { value: 'classique', label: 'Classique et traditionnel' },
-            { value: 'contemporain', label: 'Contemporain et design' },
-            { value: 'rustique', label: 'Rustique et chaleureux' },
-            { value: 'industriel', label: 'Industriel et urbain' }
+            { value: 'cosy', label: 'Cosy et chaleureux' },
+            { value: 'epure', label: 'Épuré et minimaliste' },
+            { value: 'luxueux', label: 'Luxueux et raffiné' },
+            { value: 'naturel', label: 'Naturel et authentique' },
+            { value: 'contemporain', label: 'Contemporain et tendance' }
         ],
         required: true
     });
 
-    // Questions selon le niveau de bricolage
-    if (userProfile.niveau_bricolage === 'debutant') {
-        questions.push({
-            id: 'assistance_souhaitee',
-            question: 'Souhaitez-vous une assistance particulière ?',
-            type: 'radio',
-            options: [
-                { value: 'tutoriels', label: 'Tutoriels détaillés' },
-                { value: 'accompagnement', label: 'Accompagnement par un artisan' },
-                { value: 'materiaux_simples', label: 'Matériaux faciles à utiliser' },
-                { value: 'outils_basiques', label: 'Outils basiques uniquement' }
-            ],
-            required: true
-        });
-    } else if (userProfile.niveau_bricolage === 'expert') {
-        questions.push({
-            id: 'outils_disponibles',
-            question: 'Quels outils professionnels avez-vous à disposition ?',
-            type: 'checkbox',
-            options: [
-                { value: 'perceuse', label: 'Perceuse/Visseuse' },
-                { value: 'scie', label: 'Scie circulaire' },
-                { value: 'ponceuse', label: 'Ponceuse' },
-                { value: 'niveau', label: 'Niveau laser' },
-                { value: 'compresseur', label: 'Compresseur' },
-                { value: 'aucun', label: 'Aucun outil professionnel' }
-            ],
-            required: true
-        });
-    }
-
-    // Questions selon le budget
+    // Question sur les priorités selon le budget
     if (userProfile.budget === 'serre') {
         questions.push({
-            id: 'priorites_economie',
-            question: 'Sur quoi êtes-vous prêt à faire des économies ?',
-            type: 'checkbox',
+            id: 'optimisation_budget',
+            question: 'Comment optimiser votre budget ?',
+            type: 'radio',
             options: [
-                { value: 'materiaux', label: 'Qualité des matériaux' },
-                { value: 'finitions', label: 'Finitions soignées' },
-                { value: 'marques', label: 'Marques reconnues' },
-                { value: 'rapidite', label: 'Rapidité d\'exécution' },
-                { value: 'aucune', label: 'Aucune économie souhaitée' }
+                { value: 'materiaux_eco', label: 'Matériaux économiques mais durables' },
+                { value: 'travaux_essentiels', label: 'Travaux essentiels uniquement' },
+                { value: 'phases_etalees', label: 'Travaux en plusieurs phases' },
+                { value: 'recyclage', label: 'Recyclage et récupération' }
             ],
             required: true
         });
     } else if (userProfile.budget === 'confortable') {
         questions.push({
-            id: 'priorites_qualite',
-            question: 'Quelles sont vos priorités pour ce projet ?',
-            type: 'checkbox',
+            id: 'plus_value',
+            question: 'Quelle plus-value recherchez-vous ?',
+            type: 'radio',
             options: [
-                { value: 'durabilite', label: 'Durabilité et longévité' },
-                { value: 'esthetique', label: 'Esthétique et design' },
-                { value: 'confort', label: 'Confort et fonctionnalité' },
-                { value: 'valeur_ajoutee', label: 'Valeur ajoutée au bien' },
-                { value: 'ecologie', label: 'Matériaux écologiques' }
+                { value: 'valeur_bien', label: 'Augmenter la valeur du bien' },
+                { value: 'confort_vie', label: 'Améliorer le confort de vie' },
+                { value: 'esthetique', label: 'Transformation esthétique' },
+                { value: 'modernisation', label: 'Modernisation complète' }
             ],
             required: true
         });
     }
 
-    // Questions selon le délai
+    // Question sur la durée selon le délai
     if (userProfile.delai === 'urgent') {
         questions.push({
-            id: 'contraintes_urgence',
-            question: 'Quelles sont vos contraintes de temps ?',
+            id: 'urgence_type',
+            question: 'Quelle est la nature de l\'urgence ?',
             type: 'radio',
             options: [
-                { value: 'semaine', label: 'Dans la semaine' },
-                { value: 'quinzaine', label: 'Dans les 15 jours' },
-                { value: 'mois', label: 'Dans le mois' },
-                { value: 'saison', label: 'Avant la saison' }
+                { value: 'securite', label: 'Problème de sécurité' },
+                { value: 'fonctionnel', label: 'Problème fonctionnel' },
+                { value: 'evenement', label: 'Événement à venir' },
+                { value: 'contrainte', label: 'Contrainte externe' }
             ],
             required: true
         });
     }
 
-    // Questions selon l'implication
+    // Question sur l'organisation selon l'implication
     if (userProfile.implication === 'maximale') {
         questions.push({
-            id: 'temps_disponible',
-            question: 'Combien de temps pouvez-vous consacrer par semaine ?',
+            id: 'organisation_travaux',
+            question: 'Comment souhaitez-vous organiser les travaux ?',
             type: 'radio',
             options: [
-                { value: '5h', label: '5 heures par semaine' },
-                { value: '10h', label: '10 heures par semaine' },
-                { value: '20h', label: '20 heures par semaine' },
-                { value: 'temps_plein', label: 'Temps plein disponible' }
+                { value: 'weekends', label: 'Travaux le weekend' },
+                { value: 'vacances', label: 'Pendant les vacances' },
+                { value: 'soirees', label: 'En soirée après le travail' },
+                { value: 'planning', label: 'Planning flexible selon disponibilités' }
             ],
             required: true
         });
     }
 
-    // Questions spécifiques selon la description
-    if (description.toLowerCase().includes('cuisine')) {
+    // Questions spécifiques selon le type de pièce
+    const descriptionLower = description.toLowerCase();
+    
+    if (descriptionLower.includes('cuisine')) {
         questions.push({
-            id: 'type_cuisine',
-            question: 'Quel type de cuisine souhaitez-vous ?',
+            id: 'fonctionnalite_cuisine',
+            question: 'Quelle fonctionnalité privilégier ?',
             type: 'radio',
             options: [
-                { value: 'cuisine_ouverte', label: 'Cuisine ouverte' },
-                { value: 'cuisine_fermee', label: 'Cuisine fermée' },
-                { value: 'cuisine_americaine', label: 'Cuisine américaine' },
-                { value: 'cuisine_equipee', label: 'Cuisine équipée' }
+                { value: 'cuisine_sociale', label: 'Cuisine sociale et conviviale' },
+                { value: 'cuisine_pratique', label: 'Cuisine pratique et fonctionnelle' },
+                { value: 'cuisine_esthetique', label: 'Cuisine esthétique et design' },
+                { value: 'cuisine_optimale', label: 'Optimisation de l\'espace' }
             ],
             required: true
         });
     }
-
-    if (description.toLowerCase().includes('salle de bain') || description.toLowerCase().includes('salle de bains')) {
+    
+    if (descriptionLower.includes('salle de bain') || descriptionLower.includes('salle bain')) {
         questions.push({
-            id: 'type_salle_bain',
-            question: 'Quel type de salle de bain souhaitez-vous ?',
+            id: 'experience_sdb',
+            question: 'Quelle expérience recherchez-vous ?',
             type: 'radio',
             options: [
-                { value: 'douche', label: 'Avec douche' },
-                { value: 'baignoire', label: 'Avec baignoire' },
-                { value: 'douche_baignoire', label: 'Douche + baignoire' },
-                { value: 'douche_italienne', label: 'Douche à l\'italienne' }
+                { value: 'spa', label: 'Ambiance spa et détente' },
+                { value: 'pratique', label: 'Pratique et fonctionnel' },
+                { value: 'moderne', label: 'Moderne et design' },
+                { value: 'accessible', label: 'Accessible et sécurisé' }
+            ],
+            required: true
+        });
+    }
+    
+    if (descriptionLower.includes('chambre')) {
+        questions.push({
+            id: 'fonction_chambre',
+            question: 'Quelle fonction principale ?',
+            type: 'radio',
+            options: [
+                { value: 'repos', label: 'Repos et détente' },
+                { value: 'travail', label: 'Travail et concentration' },
+                { value: 'stockage', label: 'Stockage et rangement' },
+                { value: 'polyvalente', label: 'Polyvalente et adaptable' }
             ],
             required: true
         });
     }
 
-            if (description.toLowerCase().includes('chambre') || description.toLowerCase().includes('lit')) {
-            questions.push({
-                id: 'type_chambre',
-                question: 'Quel type de chambre souhaitez-vous ?',
-                type: 'radio',
-                options: [
-                    { value: 'chambre_parentale', label: 'Chambre parentale' },
-                    { value: 'chambre_enfant', label: 'Chambre d\'enfant' },
-                    { value: 'chambre_ado', label: 'Chambre d\'adolescent' },
-                    { value: 'chambre_guest', label: 'Chambre d\'amis' }
-                ],
-                required: true
-            });
-        }
+    // Question sur les matériaux selon le niveau
+    if (userProfile.niveau_bricolage === 'expert') {
+        questions.push({
+            id: 'preference_materiaux',
+            question: 'Quels matériaux préférez-vous ?',
+            type: 'radio',
+            options: [
+                { value: 'naturels', label: 'Matériaux naturels (bois, pierre)' },
+                { value: 'modernes', label: 'Matériaux modernes (verre, métal)' },
+                { value: 'ecologiques', label: 'Matériaux écologiques' },
+                { value: 'durables', label: 'Matériaux ultra-durables' }
+            ],
+            required: true
+        });
+    }
 
     return questions;
 }
