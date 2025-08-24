@@ -60,8 +60,9 @@ console.log('   OPENAI_API_KEY preview:', process.env.OPENAI_API_KEY ? process.e
 
 // Vérification de la configuration
 if (!OPENAI_API_KEY) {
-    console.error('❌ ERREUR: OPENAI_API_KEY non configurée dans les variables d\'environnement');
-    console.error('❌ Ajoutez OPENAI_API_KEY dans votre fichier .env ou variables d\'environnement');
+    console.error('❌ ERREUR: OPENAI_API_KEY non configurée');
+    console.error('❌ Configurez OPENAI_API_KEY dans les variables d\'environnement Render');
+    console.error('❌ Ou ajoutez-la dans un fichier .env pour le développement local');
     process.exit(1);
 }
 
@@ -215,7 +216,7 @@ IMPORTANT: Réponds UNIQUEMENT avec le JSON, sans \`\`\`json ni texte avant/apr�
             temperature: 0.7
         };
 
-        console.log('🔑 Clé API utilisée:', OPENAI_API_KEY.substring(0, 20) + '...');
+        console.log('🔑 Clé API configurée et valide');
         console.log('📤 Envoi à OpenAI...');
         console.log('URL:', OPENAI_API_URL);
         console.log('Modèle:', requestData.model);
@@ -499,7 +500,7 @@ app.get('/api/test', (req, res) => {
         environment: process.env.NODE_ENV || 'development',
         port: PORT,
         openai_key_exists: !!OPENAI_API_KEY,
-        openai_key_preview: OPENAI_API_KEY ? OPENAI_API_KEY.substring(0, 20) + '...' : 'Non définie'
+        openai_key_preview: OPENAI_API_KEY ? '[CONFIGURÉE]' : 'Non définie'
     });
 });
 
@@ -531,8 +532,8 @@ app.get('/api/health', (req, res) => {
 
 // Démarrage du serveur
 app.listen(PORT, () => {
-    console.log('🔑 Configuration:');
-    console.log('   OPENAI_API_KEY:', OPENAI_API_KEY.substring(0, 20) + '...');
+            console.log('🔑 Configuration:');
+        console.log('   OPENAI_API_KEY: [CONFIGURÉE]');
     console.log('   PORT:', PORT);
     console.log('🚀 Serveur démarré sur http://localhost:' + PORT);
     console.log('🌍 Environnement:', process.env.NODE_ENV || 'development');
