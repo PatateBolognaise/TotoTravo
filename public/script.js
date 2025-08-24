@@ -310,8 +310,8 @@ async function analyzeImages() {
     if (loadingSection) loadingSection.style.display = 'block';
     if (resultsSection) resultsSection.style.display = 'none';
     
-    // Démarrer l'animation de chargement
-    startLoadingAnimation();
+    // Démarrer l'animation de chargement avec étapes détaillées
+    startDetailedLoadingAnimation();
 
     const formData = new FormData();
     selectedFiles.forEach(file => {
@@ -974,6 +974,35 @@ function startLoadingAnimation() {
         currentLoadingMessage = (currentLoadingMessage + 1) % loadingMessages.length;
         loadingElement.textContent = loadingMessages[currentLoadingMessage];
     }, 3000);
+}
+
+function startDetailedLoadingAnimation() {
+    const loadingElement = document.getElementById('loadingMessage');
+    if (!loadingElement) return;
+    
+    currentLoadingMessage = 0;
+    
+    // Messages de chargement détaillés et réalistes
+    const detailedLoadingMessages = [
+        "🔍 Analyse des images en cours...",
+        "📏 Calcul du métrage et des dimensions...",
+        "🏠 Identification des éléments (murs, sols, plafonds)...",
+        "🌐 Recherche des prix réels sur internet...",
+        "💰 Estimation des prix selon votre budget...",
+        "🛠️ Analyse de la complexité des travaux...",
+        "📋 Préparation du planning détaillé...",
+        "🎯 Adaptation selon votre profil bricolage...",
+        "📊 Finalisation de l'analyse ultra-détaillée..."
+    ];
+    
+    // Afficher le premier message
+    loadingElement.textContent = detailedLoadingMessages[0];
+    
+    // Changer de message toutes les 2.5 secondes
+    loadingInterval = setInterval(() => {
+        currentLoadingMessage = (currentLoadingMessage + 1) % detailedLoadingMessages.length;
+        loadingElement.textContent = detailedLoadingMessages[currentLoadingMessage];
+    }, 2500);
 }
 
 function stopLoadingAnimation() {

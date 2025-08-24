@@ -3,12 +3,14 @@ const multer = require('multer');
 const axios = require('axios');
 const cors = require('cors');
 const path = require('path');
+const { getJson } = require('serpapi');
 require('dotenv').config();
 
 const app = express();
 
 // Configuration des variables d'environnement
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+const SERPAPI_KEY = process.env.SERPAPI_KEY;
 const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
 const PORT = process.env.PORT || 10000;
 
@@ -34,6 +36,57 @@ app.use(cors({
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
+
+// Fonction pour rechercher les prix réels avec SerpAPI
+async function searchRealPrices(product, store = '') {
+    try {
+        if (!SERPAPI_KEY) {
+            console.log('⚠️ SERPAPI_KEY non configurée, utilisation des prix de référence');
+            return null;
+        }
+
+        const searchQuery = `${product} prix ${store}`.trim();
+        console.log(`🔍 Recherche de prix pour: ${searchQuery}`);
+
+        const response = await getJson({
+            engine: "google_shopping",
+            q: searchQuery,
+            api_key: SERPAPI_KEY,
+            gl: "fr",
+            hl: "fr"
+        });
+
+        if (response.shopping_results && response.shopping_results.length > 0) {
+            const prices = response.shopping_results
+                .map(result => {
+                    const price = result.extracted_price || result.price;
+                    return price ? parseFloat(price) : null;
+                })
+                .filter(price => price !== null);
+
+            if (prices.length > 0) {
+                const avgPrice = prices.reduce((a, b) => a + b, 0) / prices.length;
+                const minPrice = Math.min(...prices);
+                const maxPrice = Math.max(...prices);
+                
+                console.log(`💰 Prix trouvés pour ${product}: ${minPrice}€ - ${maxPrice}€ (moyenne: ${avgPrice.toFixed(2)}€)`);
+                
+                return {
+                    min: minPrice,
+                    max: maxPrice,
+                    average: avgPrice,
+                    source: 'SerpAPI'
+                };
+            }
+        }
+
+        console.log(`❌ Aucun prix trouvé pour: ${product}`);
+        return null;
+    } catch (error) {
+        console.error(`❌ Erreur recherche prix pour ${product}:`, error.message);
+        return null;
+    }
+}
 
 // Configuration Multer pour le stockage en mémoire
 const upload = multer({
@@ -69,7 +122,53 @@ async function analyzeImagesWithAI(files, userProfile, description = '') {
 
         console.log('📤 Envoi à GPT-4 Vision...');
         
+        // Rechercher les prix réels pour les matériaux courants
+        console.log('🔍 Recherche des prix réels en cours...');
+        const realPrices = {};
+        
+        const commonMaterials = [
+            'peinture murale dulux',
+            'carrelage sol',
+            'parquet chêne',
+            'moquette tarkett',
+            'papier peint',
+            'enduit lissage',
+            'rouleau peinture'
+        ];
+
+        for (const material of commonMaterials) {
+            const prices = await searchRealPrices(material);
+            if (prices) {
+                realPrices[material] = prices;
+            }
+        }
+
+        // Si l'utilisateur demande un aménagement, rechercher les prix des meubles
+        if (description.toLowerCase().includes('aménager') || description.toLowerCase().includes('meuble') || description.toLowerCase().includes('canapé') || description.toLowerCase().includes('table')) {
+            console.log('🪑 Recherche des prix de meubles...');
+            const furnitureItems = [
+                'canapé 3 places',
+                'table salle à manger',
+                'lit 160cm',
+                'armoire penderie',
+                'commode',
+                'bureau'
+            ];
+
+            for (const furniture of furnitureItems) {
+                const prices = await searchRealPrices(furniture);
+                if (prices) {
+                    realPrices[furniture] = prices;
+                }
+            }
+        }
+
+        console.log('💰 Prix réels trouvés:', Object.keys(realPrices).length, 'produits');
+        
         const prompt = `Tu es un expert artisan en rénovation immobilière avec 20 ans d'expérience. Analyse ces images et fournis une analyse ULTRA-DÉTAILLÉE avec métrage, prix des meubles, matériaux, produits spécifiques. Réponds UNIQUEMENT avec un objet JSON valide.
+
+PRIX RÉELS TROUVÉS SUR INTERNET (utilise ces prix quand possible):
+${JSON.stringify(realPrices, null, 2)}
 
 PROFIL UTILISATEUR:
 - Niveau bricolage: ${userProfile.niveau_bricolage}
@@ -86,73 +185,70 @@ INSTRUCTIONS STRICTES - ANALYSE ULTRA-DÉTAILLÉE:
 2. **IDENTIFICATION COMPLÈTE** : Murs, sols, plafonds, fenêtres, portes, électricité, plomberie
 3. **ÉTAT DÉTAILLÉ** : État de chaque élément (excellent/bon/moyen/mauvais/critique)
 4. **TRAVAUX COMPLETS** : Liste exhaustive de tous les travaux nécessaires
-5. **PRIX DÉTAILLÉS** : Matériaux + main d'œuvre séparément
-6. **MEUBLES ET ÉQUIPEMENTS** : Si aménagement demandé, liste complète avec prix
+5. **PRIX RÉALISTES** : Estime les prix en fonction de la qualité et de la complexité
+6. **MEUBLES ET ÉQUIPEMENTS** : Si aménagement demandé, liste complète avec prix réalistes
 7. **MATÉRIAUX SPÉCIFIQUES** : Marques, références, quantités
 8. **PRODUITS CONCRETS** : Noms de produits, magasins recommandés
 9. **DISTINCTION ARTISAN/BRICOLAGE** : Selon le profil utilisateur
 10. **PLANNING DÉTAILLÉ** : Phases, tâches, durées précises
 
-PRIX RÉALISTES 2024 - TRÈS DÉTAILLÉS:
+ESTIMATION DES PRIX - MÉTHODE RÉALISTE:
 
-**MATÉRIAUX DE BASE:**
-- Peinture murale: 15-25€/m² (Dulux, Tollens, Farrow & Ball)
-- Carrelage sol: 40-80€/m² (Porcelanosa, Marazzi, Cifre)
-- Carrelage mural: 30-60€/m²
-- Parquet: 60-120€/m² (chêne massif, chêne contrecollé)
-- Moquette: 25-50€/m² (Tarkett, Balta)
-- Papier peint: 20-40€/m² (Casamance, Sanderson)
+**PRINCIPES D'ESTIMATION:**
+- Évalue la QUALITÉ nécessaire selon le budget utilisateur
+- Considère la COMPLEXITÉ des travaux (état actuel, accessibilité)
+- Adapte les prix selon la RÉGION (France métropolitaine)
+- Inclus les FRAIS ANNEXES (déchets, protection, finitions)
 
-**ÉLECTRICITÉ:**
-- Point lumineux: 80-150€ (Legrand, Schneider)
-- Prise électrique: 60-120€
-- Interrupteur: 40-80€
-- Tableau électrique: 800-2000€
-- Câblage: 15-25€/m linéaire
+**QUALITÉ SELON BUDGET:**
+- Budget serré: Matériaux entrée de gamme, finitions basiques
+- Budget moyen: Matériaux milieu de gamme, finitions correctes
+- Budget confortable: Matériaux haut de gamme, finitions soignées
 
-**PLOMBERIE:**
-- Robinet lavabo: 80-200€ (Grohe, Hansgrohe)
-- Robinet douche: 150-400€
-- WC suspendu: 300-800€ (Geberit, Roca)
-- Douche à l'italienne: 800-2000€
-- Baignoire: 400-1200€
+**FACTEURS DE COMPLEXITÉ:**
+- État dégradé: +20-30% sur les prix
+- Travaux en hauteur: +15-25% sur main d'œuvre
+- Démolition nécessaire: +10-20% sur matériaux
+- Finitions complexes: +25-40% sur main d'œuvre
 
-**MENUISERIE:**
-- Porte intérieure: 200-500€/m² (Lapeyre, Schmidt)
-- Fenêtre PVC: 300-800€/m² (Veka, Rehau)
-- Fenêtre aluminium: 400-1000€/m²
-- Escalier: 3000-15000€
-- Placard sur mesure: 800-2000€/m²
+**PRIX DE RÉFÉRENCE 2024 (France):**
 
-**MEUBLES ET ÉQUIPEMENTS:**
-- Canapé 3 places: 800-3000€ (IKEA, Roche Bobois)
-- Table de salle à manger: 400-2000€
-- Chaises: 80-300€/chaise
-- Lit 160cm: 600-2500€
-- Armoire penderie: 500-1500€
-- Commode: 300-1200€
-- Table de chevet: 100-400€
-- Bureau: 300-1500€
-- Bibliothèque: 200-1000€
-- Cuisine complète: 8000-25000€ (IKEA, Schmidt, Bulthaup)
-- Salle de bain complète: 5000-15000€
+**MATÉRIAUX DE BASE (prix/m²):**
+- Peinture murale: 8-15€ (entrée) / 15-25€ (moyen) / 25-40€ (haut)
+- Carrelage sol: 25-45€ (entrée) / 45-80€ (moyen) / 80-150€ (haut)
+- Parquet: 35-60€ (stratifié) / 60-100€ (contrecollé) / 100-200€ (massif)
+- Moquette: 15-30€ (entrée) / 30-50€ (moyen) / 50-100€ (haut)
 
-**ÉLECTROMÉNAGER:**
-- Réfrigérateur: 400-1500€
-- Lave-vaisselle: 300-1200€
-- Four: 300-1500€
-- Plaques de cuisson: 200-1000€
-- Lave-linge: 400-1200€
-- Sèche-linge: 400-1200€
+**ÉLECTRICITÉ (prix/point):**
+- Point lumineux: 60-100€ (simple) / 100-150€ (complexe)
+- Prise électrique: 40-80€ (simple) / 80-120€ (avec protection)
+- Interrupteur: 30-60€ (simple) / 60-100€ (programmable)
 
-**MAIN D'ŒUVRE 2024:**
-- Maçon: 45-65€/h
-- Électricien: 50-70€/h
-- Plombier: 55-75€/h
-- Menuisier: 50-70€/h
-- Carreleur: 45-65€/h
-- Peintre: 35-55€/h
-- Plâtrier: 40-60€/h
+**PLOMBERIE (prix/élément):**
+- Robinet lavabo: 50-120€ (entrée) / 120-250€ (moyen) / 250-500€ (haut)
+- WC suspendu: 200-400€ (entrée) / 400-800€ (moyen) / 800-1500€ (haut)
+- Douche à l'italienne: 500-1000€ (simple) / 1000-2000€ (moyen) / 2000-4000€ (haut)
+
+**MEUBLES (prix estimé):**
+- Canapé 3 places: 400-800€ (entrée) / 800-2000€ (moyen) / 2000-5000€ (haut)
+- Table salle à manger: 200-500€ (entrée) / 500-1500€ (moyen) / 1500-4000€ (haut)
+- Lit 160cm: 300-600€ (entrée) / 600-1500€ (moyen) / 1500-3000€ (haut)
+
+**MAIN D'ŒUVRE 2024 (prix/h):**
+- Maçon: 35-50€ (région) / 50-70€ (Paris)
+- Électricien: 40-60€ (région) / 60-80€ (Paris)
+- Plombier: 45-65€ (région) / 65-85€ (Paris)
+- Menuisier: 40-60€ (région) / 60-80€ (Paris)
+- Carreleur: 35-55€ (région) / 55-75€ (Paris)
+- Peintre: 25-40€ (région) / 40-60€ (Paris)
+
+**IMPORTANT - ESTIMATION RÉALISTE:**
+- UTILISE LES PRIX RÉELS TROUVÉS SUR INTERNET quand disponibles
+- Évalue l'état actuel pour ajuster les prix
+- Considère la complexité des travaux
+- Adapte selon le budget utilisateur
+- Inclus les frais annexes (déchets, protection, finitions)
+- Donne des fourchettes de prix réalistes basées sur les prix actuels du marché
 
 FORMAT JSON OBLIGATOIRE - ULTRA-DÉTAILLÉ:
 {
@@ -403,24 +499,32 @@ IMPORTANT:
                                 materiaux_necessaires: [
                                     {
                                         nom: "Peinture murale",
-                                        marque: "Dulux",
+                                        marque: "Dulux Ambiance",
                                         quantite: "5L",
-                                        prix_unitaire: 45,
-                                        prix_total: 225,
+                                        prix_unitaire: 35,
+                                        prix_total: 175,
                                         magasin: "Leroy Merlin"
                                     },
                                     {
-                                        nom: "Carrelage sol",
-                                        marque: "Porcelanosa",
-                                        quantite: "15m²",
-                                        prix_unitaire: 60,
-                                        prix_total: 900,
+                                        nom: "Enduit de lissage",
+                                        marque: "Placo",
+                                        quantite: "10kg",
+                                        prix_unitaire: 12,
+                                        prix_total: 120,
                                         magasin: "Brico Dépôt"
+                                    },
+                                    {
+                                        nom: "Rouleau peinture",
+                                        marque: "Proline",
+                                        quantite: "2 unités",
+                                        prix_unitaire: 8,
+                                        prix_total: 16,
+                                        magasin: "Castorama"
                                     }
                                 ],
-                                cout_materiaux: 1500,
-                                cout_main_oeuvre: 3000,
-                                cout_total: 4500,
+                                cout_materiaux: 311,
+                                cout_main_oeuvre: 800,
+                                cout_total: 1111,
                                 duree_estimee: "2-3 semaines",
                                 priorite: "haute",
                                 conseils: "Faites appel à un artisan qualifié pour un devis précis. Prévoyez une marge de 20% pour les imprévus.",
@@ -445,25 +549,25 @@ IMPORTANT:
                                 conseils_achat: "Table avec rangement intégré recommandée"
                             }
                         ],
-                        cout_total_piece: 6000,
-                        cout_materiaux_piece: 1500,
-                        cout_main_oeuvre_piece: 3000
+                        cout_total_piece: 1111,
+                        cout_materiaux_piece: 311,
+                        cout_main_oeuvre_piece: 800
                     }
                 ],
                 analyse_globale: {
                     score_global: "moyen",
                     niveau_difficulte: 65,
-                    cout_total: 6000,
-                    cout_materiaux_total: 1500,
-                    cout_main_oeuvre_total: 3000,
-                    cout_meubles_total: 1500,
+                    cout_total: 1111,
+                    cout_materiaux_total: 311,
+                    cout_main_oeuvre_total: 800,
+                    cout_meubles_total: 0,
                     duree_totale: "3-4 semaines",
                     commentaire_general: "Rénovation complète nécessaire. Travaux de qualité nécessitant un artisan qualifié. Budget réaliste pour un résultat professionnel.",
                     travaux_artisan: [
                         {
                             nom: "Rénovation complète",
                             description: "Rénovation complète incluant maçonnerie, électricité, plomberie et finitions",
-                            cout: 4500,
+                            cout: 1111,
                             duree: "2-3 semaines",
                             raison_artisan: "Travaux complexes nécessitant expertise technique et garantie décennale",
                             artisan_recommande: "Artisan généraliste ou maçon"
