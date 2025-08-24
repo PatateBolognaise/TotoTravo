@@ -12,15 +12,18 @@ const app = express();
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const SERPAPI_KEY = process.env.SERPAPI_KEY;
 const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
-const PORT = process.env.PORT || 10000;
+const PORT = process.env.PORT || 5000;
 
 // Vérification de la configuration
 if (!OPENAI_API_KEY) {
-    console.error('❌ ERREUR: OPENAI_API_KEY non configurée');
-    console.error('❌ Configurez OPENAI_API_KEY dans les variables d\'environnement Render');
-    console.error('❌ Ou ajoutez-la dans un fichier .env pour le développement local');
-    process.exit(1);
+    console.warn('⚠️ ATTENTION: OPENAI_API_KEY non configurée');
+    console.warn('⚠️ L\'analyse IA ne fonctionnera pas sans cette clé');
+    console.warn('⚠️ Mais les questions dynamiques fonctionneront pour les tests');
+    // Ne pas arrêter le serveur, juste avertir
 }
+
+// Middleware pour parser le JSON (DOIT ÊTRE AVANT LES ROUTES)
+app.use(express.json());
 
 // Configuration CORS
 app.use(cors({
@@ -763,13 +766,21 @@ INSTRUCTIONS:
 // Endpoint pour obtenir les questions dynamiques selon le profil
 app.post('/api/get-questions', (req, res) => {
     try {
+        console.log('📥 Requête questions reçue');
+        console.log('📊 Body:', req.body);
+        
         const { userProfile, description } = req.body;
         
         if (!userProfile) {
+            console.log('❌ Profil utilisateur manquant');
             return res.status(400).json({ error: 'Profil utilisateur requis' });
         }
 
+        console.log('👤 Profil reçu:', userProfile);
+        console.log('📝 Description reçue:', description);
+
         const questions = generateDynamicQuestions(userProfile, description);
+        console.log('❓ Questions générées:', questions);
         
         res.json({
             questions: questions,

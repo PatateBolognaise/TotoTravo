@@ -304,17 +304,29 @@ async function analyzeImages() {
     const description = document.getElementById('description')?.value || '';
     
     // Récupérer les questions dynamiques selon le profil
+    console.log('🔍 Récupération des questions dynamiques...');
+    console.log('👤 Profil utilisateur:', userProfile);
+    console.log('📝 Description:', description);
+    
     const questions = await getDynamicQuestions(description);
+    console.log('❓ Questions générées:', questions);
     
     if (questions && questions.length > 0) {
+        console.log('✅ Affichage des questions dynamiques...');
         // Afficher les questions avant l'analyse
         const answers = await showDynamicQuestions(questions);
+        console.log('📝 Réponses utilisateur:', answers);
+        
         if (!answers) {
+            console.log('❌ Utilisateur a annulé');
             return; // L'utilisateur a annulé
         }
         
         // Ajouter les réponses au profil utilisateur
         userProfile = { ...userProfile, ...answers };
+        console.log('👤 Profil enrichi:', userProfile);
+    } else {
+        console.log('⚠️ Aucune question dynamique générée');
     }
     
     // Afficher la section de chargement
@@ -1029,6 +1041,12 @@ function stopLoadingAnimation() {
 // Fonction pour récupérer les questions dynamiques
 async function getDynamicQuestions(description) {
     try {
+        console.log('🌐 Envoi requête questions dynamiques...');
+        console.log('📤 Données envoyées:', {
+            userProfile: userProfile,
+            description: description
+        });
+        
         const response = await fetch('/api/get-questions', {
             method: 'POST',
             headers: {
@@ -1040,14 +1058,21 @@ async function getDynamicQuestions(description) {
             })
         });
 
+        console.log('📥 Réponse reçue, status:', response.status);
+
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
 
         const data = await response.json();
-        return data.questions || [];
+        console.log('📊 Données reçues:', data);
+        
+        const questions = data.questions || [];
+        console.log('❓ Questions extraites:', questions);
+        
+        return questions;
     } catch (error) {
-        console.error('Erreur récupération questions:', error);
+        console.error('❌ Erreur récupération questions:', error);
         return [];
     }
 }
