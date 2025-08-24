@@ -16,11 +16,18 @@ app.use(cors({
 // Middleware
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
-app.use(express.static('public'));
+
+// Servir les fichiers statiques
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Route pour la page d'accueil
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
 
 // Configuration
-const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY || 'sk-872ba319f3d0467f9c3167e00654c333';
-const DEEPSEEK_API_URL = 'https://api.deepseek.com/v1/chat/completions';
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY || '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';
+const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
 const PORT = process.env.PORT || 3000;
 
 // Configuration Multer pour Vercel (mémoire uniquement)
@@ -40,30 +47,25 @@ const upload = multer({
     }
 });
 
-// Fonction pour analyser les images avec DeepSeek Chat
-async function analyzeImagesWithAI(files, userProfile) {
+// Fonction pour analyser les images avec GPT-4 Vision
+async function analyzeImagesWithAI(files, userProfile, description = '') {
     try {
-        console.log('📸 Analyse de', files.length, 'images avec DeepSeek');
+        console.log('📸 Analyse de', files.length, 'images avec GPT-4 Vision');
         
-        // Préparer les métadonnées des images
-        const imageMetadata = files.map(file => ({
-            filename: file.originalname,
-            size: file.size,
-            mimetype: file.mimetype,
-            description: `Image ${file.originalname} de ${file.size} bytes, type ${file.mimetype}`
+        // Convertir les images en base64
+        const imageContents = await Promise.all(files.map(async (file) => {
+            const base64 = file.buffer.toString('base64');
+            return {
+                type: "image_url",
+                image_url: {
+                    url: `data:${file.mimetype};base64,${base64}`
+                }
+            };
         }));
 
-        // Créer la description des images pour l'IA
-        const imagesDescription = imageMetadata.map(img => 
-            `- ${img.filename}: ${img.size} bytes, ${img.mimetype}`
-        ).join('\n');
-
-        console.log('📤 Envoi à DeepSeek Chat...');
+        console.log('📤 Envoi à GPT-4 Vision...');
         
-        const prompt = `Tu es un expert artisan en rénovation immobilière. Analyse ces images de pièces à rénover et fournis une estimation détaillée des travaux nécessaires.
-
-IMAGES À ANALYSER:
-${imagesDescription}
+        const prompt = `Tu es un expert artisan en rénovation immobilière. Analyse ces images et réponds UNIQUEMENT avec un objet JSON valide.
 
 PROFIL UTILISATEUR:
 - Niveau bricolage: ${userProfile.niveau_bricolage}
@@ -72,32 +74,47 @@ PROFIL UTILISATEUR:
 - Implication: ${userProfile.implication}
 - Type projet: ${userProfile.type_projet}
 
-INSTRUCTIONS:
-1. Identifie chaque pièce visible dans les images
-2. Évalue l'état actuel (bon, moyen, mauvais)
-3. Liste les travaux nécessaires avec coûts détaillés
-4. Distingue travaux artisan vs bricolage
-5. Fournis un planning réaliste
-6. Utilise des prix 2024 réalistes
+DESCRIPTION DU PROJET (TRÈS IMPORTANT):
+${description || 'Aucune description fournie'}
 
-RÉPONSE ATTENDUE (JSON uniquement):
+INSTRUCTIONS STRICTES:
+1. Identifie les pièces visibles dans les images
+2. Évalue l'état actuel (bon/moyen/mauvais)
+3. Liste les travaux nécessaires avec coûts réalistes 2024
+4. INCLUS OBLIGATOIREMENT les éléments demandés dans la description du projet
+5. Distingue artisan vs bricolage selon le profil
+6. Fournis un planning réaliste
+7. Réponds UNIQUEMENT avec du JSON valide, sans texte avant ou après
+
+PRIX RÉALISTES 2024:
+- Peinture: 15-25€/m²
+- Carrelage: 40-80€/m²
+- Électricité: 80-150€/point
+- Plomberie: 100-200€/point
+- Menuiserie: 200-500€/m²
+- Démolition: 20-40€/m²
+- Télé motorisé: 2000-5000€
+- Table motorisée: 3000-8000€
+- Systèmes automatisés: 5000-15000€
+
+FORMAT JSON OBLIGATOIRE (réponds exactement comme ça):
 {
   "pieces": [
     {
       "nom": "Nom de la pièce",
-      "etat": "Description de l'état",
+      "etat": "bon/moyen/mauvais",
       "surface_estimee": "XXm²",
       "travaux": [
         {
           "nom": "Nom du travail",
-          "description": "Description détaillée",
+          "description": "Description courte",
           "type_execution": "artisan ou bricolage",
           "cout_materiaux": 1000,
           "cout_main_oeuvre": 2000,
           "cout_total": 3000,
           "duree_estimee": "X semaines",
           "priorite": "haute/moyenne/basse",
-          "conseils": "Conseils spécifiques"
+          "conseils": "Conseils courts"
         }
       ],
       "cout_total_piece": 5000
@@ -108,14 +125,14 @@ RÉPONSE ATTENDUE (JSON uniquement):
     "niveau_difficulte": 75,
     "cout_total": 15000,
     "duree_totale": "8 semaines",
-    "commentaire_general": "Analyse globale",
+    "commentaire_general": "Commentaire court",
     "travaux_artisan": [
       {
         "nom": "Travail artisan",
         "description": "Description",
         "cout": 8000,
         "duree": "4 semaines",
-        "raison_artisan": "Pourquoi faire appel à un artisan"
+        "raison_artisan": "Pourquoi artisan"
       }
     ],
     "travaux_bricolage": [
@@ -124,52 +141,65 @@ RÉPONSE ATTENDUE (JSON uniquement):
         "description": "Description",
         "cout_materiaux": 2000,
         "duree": "2 semaines",
-        "conseils_bricolage": "Conseils pour le bricolage"
+        "conseils_bricolage": "Conseils bricolage"
       }
     ],
     "planning": {
       "phase1_duree": "2 semaines",
       "phase1_taches": ["Démolition", "Préparation"],
-      "phase2_duree": "4 semaines", 
+      "phase2_duree": "4 semaines",
       "phase2_taches": ["Installation", "Rénovation"],
       "phase3_duree": "2 semaines",
       "phase3_taches": ["Finitions", "Peinture"],
       "duree_totale": "8 semaines"
     }
   }
-}`;
+}
+
+IMPORTANT: Réponds UNIQUEMENT avec le JSON, sans \`\`\`json ni texte avant/après.`;
 
         const requestData = {
-            model: "deepseek-chat",
+            model: 'gpt-4o',
             messages: [
                 {
-                    role: "user",
-                    content: prompt
+                    role: 'system',
+                    content: 'Tu es un expert artisan en rénovation immobilière. Tu analyses des images et fournis des estimations détaillées et réalistes des travaux nécessaires.'
+                },
+                {
+                    role: 'user',
+                    content: [
+                        {
+                            type: "text",
+                            text: prompt
+                        },
+                        ...imageContents
+                    ]
                 }
             ],
-            max_tokens: 2000,
-            temperature: 0.1
+            max_tokens: 4000,
+            temperature: 0.7
         };
 
-        console.log('📤 Envoi à DeepSeek Chat...');
-        
-        const response = await axios.post(DEEPSEEK_API_URL, requestData, {
+        console.log('📤 Envoi à GPT-4 Vision...');
+        console.log('URL:', OPENAI_API_URL);
+        console.log('Modèle:', requestData.model);
+
+        const response = await axios.post(OPENAI_API_URL, requestData, {
             headers: {
-                'Authorization': `Bearer ${DEEPSEEK_API_KEY}`,
+                'Authorization': `Bearer ${OPENAI_API_KEY}`,
                 'Content-Type': 'application/json'
             },
-            timeout: 300000 // 5 minutes
+            timeout: 60000
         });
 
-        console.log('✅ Réponse DeepSeek reçue');
-        
-        const content = response.data.choices[0].message.content.trim();
-        console.log('🤖 Réponse IA:', content.substring(0, 200) + '...');
+        console.log('✅ Réponse GPT-4 Vision reçue');
+        const aiResponse = response.data.choices[0].message.content;
+        console.log('🤖 Réponse IA:', aiResponse.substring(0, 200) + '...');
 
         // Parser le JSON avec gestion d'erreur robuste
         try {
             // Nettoyer le contenu des marqueurs de code
-            let cleanContent = content;
+            let cleanContent = aiResponse;
             
             // Supprimer les marqueurs ```json et ```
             cleanContent = cleanContent.replace(/```json\s*/g, '');
@@ -185,11 +215,11 @@ RÉPONSE ATTENDUE (JSON uniquement):
             return parsed;
         } catch (parseError) {
             console.error('❌ Erreur parsing JSON:', parseError);
-            console.log('📄 Contenu reçu:', content.substring(0, 500) + '...');
+            console.log('📄 Contenu reçu:', aiResponse.substring(0, 500) + '...');
             
-            // Tentative de récupération avec regex plus robuste
+            // Tentative de récupération avec regex
             try {
-                const jsonMatch = content.match(/\{[\s\S]*\}/);
+                const jsonMatch = aiResponse.match(/\{[\s\S]*\}/);
                 if (jsonMatch) {
                     const recoveredJson = jsonMatch[0];
                     console.log('🔄 Tentative de récupération JSON...');
@@ -201,28 +231,7 @@ RÉPONSE ATTENDUE (JSON uniquement):
                 console.error('❌ Échec de la récupération JSON:', recoveryError);
             }
             
-            // Tentative de récupération avec correction des erreurs courantes
-            try {
-                console.log('🔄 Tentative de correction JSON...');
-                let correctedContent = content;
-                
-                // Corriger les guillemets non fermés
-                correctedContent = correctedContent.replace(/([^"\\])(["])([^"]*)$/g, '$1$2$3"');
-                
-                // Corriger les virgules manquantes
-                correctedContent = correctedContent.replace(/([^,}])\s*}/g, '$1}');
-                
-                // Supprimer les caractères invalides
-                correctedContent = correctedContent.replace(/[\u0000-\u001F\u007F-\u009F]/g, '');
-                
-                const parsed = JSON.parse(correctedContent);
-                console.log('✅ JSON corrigé avec succès');
-                return parsed;
-            } catch (correctionError) {
-                console.error('❌ Échec de la correction JSON:', correctionError);
-            }
-            
-            // Fallback avec une réponse basique mais complète
+            // Fallback avec une réponse basique
             console.log('🔄 Utilisation du fallback...');
             return {
                 travaux: {
@@ -283,86 +292,65 @@ RÉPONSE ATTENDUE (JSON uniquement):
                 }
             };
         }
-
     } catch (error) {
         console.error('❌ Erreur analyse images:', error.message);
-        if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
-            throw new Error('L\'analyse prend plus de temps que prévu. Veuillez réessayer.');
+        if (error.response) {
+            console.error('Status:', error.response.status);
+            console.error('Data:', error.response.data);
         }
-        throw error;
+        throw new Error(`Impossible d'analyser les images avec l'IA: ${error.message}`);
     }
 }
 
-// Fonction chatbot améliorée
+// Fonction pour le chatbot avec GPT-4
 async function chatWithAI(message, projectContext = '') {
     try {
-        console.log('💬 Chatbot:', message);
+        console.log('💬 Chatbot: ' + message);
         
-        let contextInfo = '';
-        if (projectContext) {
-            try {
-                const context = JSON.parse(projectContext);
-                if (context.travaux && context.travaux.analyse_globale) {
-                    const global = context.travaux.analyse_globale;
-                    contextInfo = `
-PROJET ACTUEL:
-- Coût total: ${global.cout_total || 'N/A'}€
-- Durée: ${global.duree_totale || 'N/A'}
-- Difficulté: ${global.niveau_difficulte || 'N/A'}/100
-- Pièces analysées: ${context.travaux.pieces ? context.travaux.pieces.length : 0}
-`;
-                }
-            } catch (e) {
-                // Ignore parsing errors
-            }
-        }
-        
-        const prompt = `Tu es un artisan expert en rénovation. Réponds de manière concise et pratique.
+        const systemPrompt = `Tu es un assistant expert en rénovation immobilière. Tu réponds de manière concise et pratique aux questions des utilisateurs.
 
-${contextInfo}
-Question: ${message}
+CONTEXTE DU PROJET: ${projectContext}
 
-PRIX RÉALISTES 2024:
-- Peinture: 15-25€/m²
-- Carrelage: 40-80€/m²  
-- Vidéoprojecteur: 300-800€ (pas 5500€!)
-- Électricité: 80-150€/point
-- Plomberie: 100-200€/point
-- Menuiserie: 200-500€/m²
-
-Réponse courte et pratique (max 2 phrases):`;
+INSTRUCTIONS:
+- Réponds de manière claire et concise
+- Donne des conseils pratiques et réalistes
+- Évite les réponses trop longues
+- Sois direct et utile`;
 
         const requestData = {
-            model: "deepseek-chat",
-            messages: [{ role: "user", content: prompt }],
-            max_tokens: 100,
-            temperature: 0.3
+            model: 'gpt-4',
+            messages: [
+                {
+                    role: 'system',
+                    content: systemPrompt
+                },
+                {
+                    role: 'user',
+                    content: message
+                }
+            ],
+            max_tokens: 1000,
+            temperature: 0.7
         };
 
-        const response = await axios.post(DEEPSEEK_API_URL, requestData, {
+        const response = await axios.post(OPENAI_API_URL, requestData, {
             headers: {
-                'Authorization': `Bearer ${DEEPSEEK_API_KEY}`,
+                'Authorization': `Bearer ${OPENAI_API_KEY}`,
                 'Content-Type': 'application/json'
             },
-            timeout: 30000 // 30 secondes
+            timeout: 30000
         });
 
-        return response.data.choices[0].message.content.trim();
-
+        const aiResponse = response.data.choices[0].message.content;
+        console.log('🤖 Chatbot réponse:', aiResponse);
+        return aiResponse;
     } catch (error) {
         console.error('❌ Erreur chatbot:', error.message);
-        if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
-            return 'L\'assistant prend du temps à répondre. Veuillez réessayer.';
-        }
-        return 'Désolé, je ne peux pas répondre pour le moment.';
+        return 'Désolé, je ne peux pas répondre pour le moment. Veuillez réessayer.';
     }
 }
 
 // Routes
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
 app.post('/api/analyze-images', upload.array('images', 5), async (req, res) => {
     console.log('📥 Requête analyse reçue');
     
@@ -374,11 +362,13 @@ app.post('/api/analyze-images', upload.array('images', 5), async (req, res) => {
         console.log('📸 Images reçues:', req.files.length);
         
         const userProfile = req.body.userProfile ? JSON.parse(req.body.userProfile) : {};
+        const description = req.body.description || ''; // Get description from request body
         
         console.log('👤 Profil utilisateur:', userProfile);
+        console.log('📝 Description du projet:', description);
         
         // Analyser avec DeepSeek Chat
-        const analysis = await analyzeImagesWithAI(req.files, userProfile);
+        const analysis = await analyzeImagesWithAI(req.files, userProfile, description);
         
         const result = {
             images: req.files.map(file => ({
@@ -444,7 +434,7 @@ app.get('/api/health', (req, res) => {
 if (process.env.NODE_ENV !== 'production') {
     app.listen(PORT, () => {
         console.log('🔑 Configuration:');
-        console.log('   DEEPSEEK_API_KEY:', DEEPSEEK_API_KEY.substring(0, 20) + '...');
+        console.log('   OPENAI_API_KEY:', OPENAI_API_KEY.substring(0, 20) + '...');
         console.log('   PORT:', PORT);
         console.log('🚀 Serveur démarré sur http://localhost:' + PORT);
     });

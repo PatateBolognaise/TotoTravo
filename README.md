@@ -1,11 +1,11 @@
 # 🏠 TotoTravo - IA Rénovation Intelligente
 
-Application web innovante qui utilise l'IA DeepSeek pour analyser vos photos de rénovation et fournir des estimations détaillées avec recommandations personnalisées.
+Application web innovante qui utilise l'IA GPT-4 pour analyser vos photos de rénovation et fournir des estimations détaillées avec recommandations personnalisées.
 
 ## ✨ Fonctionnalités
 
 - **📸 Analyse d'images** : Upload de photos pour analyse IA
-- **🤖 IA DeepSeek** : Analyse intelligente des pièces et travaux
+- **🤖 IA GPT-4** : Analyse intelligente des pièces et travaux
 - **💰 Estimations détaillées** : Coûts matériaux + main d'œuvre
 - **👷 Artisan vs Bricolage** : Recommandations adaptées à votre niveau
 - **📋 Planning personnalisé** : Phases de travaux détaillées
@@ -17,7 +17,7 @@ Application web innovante qui utilise l'IA DeepSeek pour analyser vos photos de 
 ### Prérequis
 - Compte GitHub
 - Compte Vercel
-- Clé API DeepSeek
+- Clé API OpenAI
 
 ### Étapes de déploiement
 
@@ -31,7 +31,7 @@ Application web innovante qui utilise l'IA DeepSeek pour analyser vos photos de 
    - Allez sur [Vercel Dashboard](https://vercel.com/dashboard)
    - Créez un nouveau projet
    - Dans les paramètres du projet, ajoutez la variable d'environnement :
-     - `DEEPSEEK_API_KEY` = votre clé API DeepSeek
+     - `OPENAI_API_KEY` = votre clé API OpenAI
 
 3. **Déploiement automatique**
    - Connectez votre repository GitHub à Vercel
@@ -59,8 +59,8 @@ vercel
 npm install
 
 # Variables d'environnement
-cp .env.example .env
-# Ajoutez votre DEEPSEEK_API_KEY dans .env
+cp env.example .env
+# Ajoutez votre OPENAI_API_KEY dans .env
 
 # Démarrage
 npm start
@@ -86,7 +86,7 @@ tototravo/
 
 - **Backend** : Node.js, Express.js
 - **Frontend** : HTML5, CSS3, JavaScript vanilla
-- **IA** : DeepSeek API
+- **IA** : OpenAI GPT-4 API
 - **Upload** : Multer
 - **Déploiement** : Vercel
 
