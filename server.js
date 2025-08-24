@@ -5,6 +5,13 @@ const path = require('path');
 const cors = require('cors');
 require('dotenv').config();
 
+// Debug des variables d'environnement
+console.log('🔍 Debug variables d\'environnement:');
+console.log('   PORT:', process.env.PORT);
+console.log('   NODE_ENV:', process.env.NODE_ENV);
+console.log('   OPENAI_API_KEY exists:', !!process.env.OPENAI_API_KEY);
+console.log('   OPENAI_API_KEY preview:', process.env.OPENAI_API_KEY ? process.env.OPENAI_API_KEY.substring(0, 20) + '...' : 'Non définie');
+
 const app = express();
 
 // Configuration CORS pour Vercel
@@ -22,13 +29,33 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // Route pour la page d'accueil
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+    try {
+        console.log('📄 Demande page d\'accueil');
+        res.sendFile(path.join(__dirname, 'public', 'index.html'));
+    } catch (error) {
+        console.error('❌ Erreur page d\'accueil:', error);
+        res.status(500).json({ error: 'Erreur chargement page d\'accueil' });
+    }
 });
 
 // Configuration
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY || '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';
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 8080;
+
+// Debug des variables d'environnement
+console.log('🔍 Debug variables d\'environnement:');
+console.log('   PORT:', process.env.PORT);
+console.log('   NODE_ENV:', process.env.NODE_ENV);
+console.log('   OPENAI_API_KEY existe:', !!process.env.OPENAI_API_KEY);
+console.log('   OPENAI_API_KEY preview:', process.env.OPENAI_API_KEY ? process.env.OPENAI_API_KEY.substring(0, 20) + '...' : 'Non définie');
+
+// Vérification de la configuration
+if (!OPENAI_API_KEY) {
+    console.error('❌ ERREUR: OPENAI_API_KEY non configurée dans les variables d\'environnement');
+    console.error('❌ Ajoutez OPENAI_API_KEY dans votre fichier .env ou variables d\'environnement');
+    process.exit(1);
+}
 
 // Configuration Multer pour Vercel (mémoire uniquement)
 const upload = multer({
@@ -446,10 +473,17 @@ app.get('/api/test', (req, res) => {
 // Gestion d'erreurs globale
 app.use((error, req, res, next) => {
     console.error('❌ Erreur serveur:', error);
+    console.error('❌ Stack trace:', error.stack);
+    console.error('❌ URL:', req.url);
+    console.error('❌ Method:', req.method);
+    console.error('❌ Headers:', req.headers);
+    
     res.status(500).json({
         error: 'Erreur interne du serveur',
         message: error.message,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        url: req.url,
+        method: req.method
     });
 });
 
