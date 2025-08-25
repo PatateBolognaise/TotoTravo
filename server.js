@@ -4,7 +4,6 @@ const axios = require('axios');
 const cors = require('cors');
 const path = require('path');
 const { getJson } = require('serpapi');
-const DeepSeek = require('deepseek');
 const OpenAI = require('openai');
 require('dotenv').config();
 
@@ -16,10 +15,8 @@ const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY;
 const SERPAPI_KEY = process.env.SERPAPI_KEY;
 const PORT = process.env.PORT || 5000;
 
-// Configuration DeepSeek
-const deepseek = new DeepSeek({
-    apiKey: DEEPSEEK_API_KEY || 'default-key'
-});
+// Configuration DeepSeek - Utilisation directe de l'API
+const DEEPSEEK_API_URL = 'https://api.deepseek.com/v1/chat/completions';
 
 // Configuration OpenAI
 const openai = new OpenAI({
@@ -168,14 +165,19 @@ FORMAT JSON STRICT:
 
 Réponds UNIQUEMENT avec le JSON valide.`;
 
-        const response = await deepseek.chat.completions.create({
+        const response = await axios.post(DEEPSEEK_API_URL, {
             model: 'deepseek-chat',
             messages: [{ role: 'user', content: prompt }],
             temperature: 0.8,
             max_tokens: 1500
+        }, {
+            headers: {
+                'Authorization': `Bearer ${DEEPSEEK_API_KEY}`,
+                'Content-Type': 'application/json'
+            }
         });
 
-        const content = response.choices[0].message.content;
+        const content = response.data.choices[0].message.content;
         console.log('🤖 Réponse DeepSeek questions:', content);
 
         // Nettoyer et parser la réponse
