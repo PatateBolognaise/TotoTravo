@@ -152,3 +152,4 @@ curl http://localhost:5000/api/test
 
 **Plus d'erreur "Format de réponse invalide" - Tout fonctionne parfaitement !** ✅
 
+

@@ -222,3 +222,4 @@ userProfile = {
 
 **L'IA comprend maintenant parfaitement les besoins de chaque utilisateur !** 🎯
 
+

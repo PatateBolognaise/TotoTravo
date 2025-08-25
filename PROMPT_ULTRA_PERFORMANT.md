@@ -417,3 +417,4 @@ Réponds UNIQUEMENT avec ce JSON valide et complet.`;
 
 **Plus d'analyses basiques - Des études ultra-professionnelles !** 🚀✨
 
+

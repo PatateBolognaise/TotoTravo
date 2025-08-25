@@ -138,3 +138,4 @@ Dans les logs Render, tu devrais voir :
 - ✅ **Performance optimale** avec health checks
 
 **Plus de problèmes de déploiement - Tout fonctionne parfaitement !** 🚀✨
+

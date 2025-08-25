@@ -121,3 +121,4 @@ Une fois déployé, teste ces URLs:
 ✅ CDN global  
 ✅ Analytics intégrés
 
+

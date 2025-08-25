@@ -13,7 +13,7 @@ const app = express();
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY;
 const SERPAPI_KEY = process.env.SERPAPI_KEY;
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 10000;
 
 // Configuration DeepSeek - Utilisation directe de l'API
 const DEEPSEEK_API_URL = 'https://api.deepseek.com/v1/chat/completions';
@@ -141,9 +141,9 @@ INSTRUCTIONS ULTRA-PRÉCISES:
 7. Évite les questions génériques, sois SPÉCIFIQUE au projet
 
 EXEMPLES DE QUESTIONS PERTINENTES:
-- Pour une cuisine: "Quelle fonctionnalité privilégier ?" (cuisine sociale, pratique, esthétique, optimale)
-- Pour un budget serré: "Comment optimiser votre budget ?" (matériaux éco, travaux essentiels, phases étalées)
-- Pour un expert: "Quels matériaux préférez-vous ?" (naturels, modernes, écologiques, durables)
+- Pour une cuisine: "Quelle fonctionnalité privilégier ?" (cuisine sociale, pratique, esthétique, optimale, autre)
+- Pour un budget serré: "Comment optimiser votre budget ?" (matériaux éco, travaux essentiels, phases étalées, autre)
+- Pour un expert: "Quels matériaux préférez-vous ?" (naturels, modernes, écologiques, durables, autre)
 
 FORMAT JSON STRICT:
 {
@@ -156,12 +156,15 @@ FORMAT JSON STRICT:
         {"value": "option1", "label": "Réponse courte"},
         {"value": "option2", "label": "Réponse courte"},
         {"value": "option3", "label": "Réponse courte"},
-        {"value": "option4", "label": "Réponse courte"}
+        {"value": "option4", "label": "Réponse courte"},
+        {"value": "autre", "label": "Autre"}
       ],
       "required": true
     }
   ]
 }
+
+IMPORTANT: Chaque question DOIT avoir une option "autre" avec value="autre" et label="Autre".
 
 Réponds UNIQUEMENT avec le JSON valide.`;
 
@@ -207,7 +210,8 @@ function generateFallbackQuestions(userProfile, description) {
                 { value: 'epure', label: 'Épuré et minimaliste' },
                 { value: 'luxueux', label: 'Luxueux et raffiné' },
                 { value: 'naturel', label: 'Naturel et authentique' },
-                { value: 'moderne', label: 'Moderne et contemporain' }
+                { value: 'moderne', label: 'Moderne et contemporain' },
+                { value: 'autre', label: 'Autre' }
             ],
             required: true
         },
@@ -219,7 +223,8 @@ function generateFallbackQuestions(userProfile, description) {
                 { value: 'confort_vie', label: 'Confort de vie' },
                 { value: 'valeur_bien', label: 'Valeur du bien' },
                 { value: 'esthetique', label: 'Esthétique' },
-                { value: 'fonctionnalite', label: 'Fonctionnalité' }
+                { value: 'fonctionnalite', label: 'Fonctionnalité' },
+                { value: 'autre', label: 'Autre' }
             ],
             required: true
         },
@@ -231,7 +236,8 @@ function generateFallbackQuestions(userProfile, description) {
                 { value: 'vacances', label: 'Pendant les vacances' },
                 { value: 'weekends', label: 'Weekends' },
                 { value: 'soirees', label: 'Soirées' },
-                { value: 'continue', label: 'En continu' }
+                { value: 'continue', label: 'En continu' },
+                { value: 'autre', label: 'Autre' }
             ],
             required: true
         }
@@ -247,7 +253,8 @@ function generateFallbackQuestions(userProfile, description) {
                 { value: 'cuisine_sociale', label: 'Cuisine sociale et ouverte' },
                 { value: 'cuisine_pratique', label: 'Cuisine pratique et fonctionnelle' },
                 { value: 'cuisine_esthetique', label: 'Cuisine esthétique et design' },
-                { value: 'cuisine_optimale', label: 'Cuisine optimale et moderne' }
+                { value: 'cuisine_optimale', label: 'Cuisine optimale et moderne' },
+                { value: 'autre', label: 'Autre' }
             ],
             required: true
         });
@@ -262,7 +269,8 @@ function generateFallbackQuestions(userProfile, description) {
                 { value: 'repos', label: 'Repos et détente' },
                 { value: 'travail', label: 'Travail et concentration' },
                 { value: 'stockage', label: 'Stockage et organisation' },
-                { value: 'polyvalente', label: 'Polyvalente' }
+                { value: 'polyvalente', label: 'Polyvalente' },
+                { value: 'autre', label: 'Autre' }
             ],
             required: true
         });
@@ -276,7 +284,8 @@ function generateFallbackQuestions(userProfile, description) {
             { value: 'naturels', label: 'Naturels (bois, pierre)' },
             { value: 'modernes', label: 'Modernes (métal, verre)' },
             { value: 'ecologiques', label: 'Écologiques' },
-            { value: 'durables', label: 'Durables et résistants' }
+            { value: 'durables', label: 'Durables et résistants' },
+            { value: 'autre', label: 'Autre' }
         ],
         required: true
     });
@@ -426,7 +435,9 @@ app.get('/', (req, res) => {
 
 // Démarrage du serveur
 console.log('🚀 Démarrage serveur TotoTravo');
-console.log('   PORT:', PORT);
+console.log('🔍 Debug variables d\'environnement:');
+console.log('   process.env.PORT:', process.env.PORT);
+console.log('   PORT configuré:', PORT);
 console.log('   NODE_ENV:', process.env.NODE_ENV);
 console.log('   OPENAI_API_KEY configurée:', !!OPENAI_API_KEY);
 console.log('   DEEPSEEK_API_KEY configurée:', !!DEEPSEEK_API_KEY);
@@ -434,5 +445,6 @@ console.log('   DEEPSEEK_API_KEY configurée:', !!DEEPSEEK_API_KEY);
 app.listen(PORT, () => {
     console.log('🚀 Serveur démarré sur http://localhost:' + PORT);
     console.log('🌍 Environnement:', process.env.NODE_ENV || 'development');
+    console.log('✅ Serveur prêt à recevoir des requêtes');
 });
 

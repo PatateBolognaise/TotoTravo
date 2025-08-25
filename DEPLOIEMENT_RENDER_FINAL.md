@@ -157,3 +157,4 @@ Dans les logs Render, tu devrais voir :
 - `serpapi`: ^2.2.1
 
 **Application ultra-stable et performante !** 🎯✨
+

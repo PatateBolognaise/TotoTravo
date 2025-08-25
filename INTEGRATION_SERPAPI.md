@@ -180,3 +180,4 @@ const { getJson } = require('serpapi');
 
 **L'IA est maintenant connectée au web pour des estimations ultra-précises !** 🌐
 
+

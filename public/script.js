@@ -365,7 +365,7 @@ async function analyzeImages() {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 360000); // 6 minutes
 
-        const response = await fetch('/api/analyze-images', {
+        const response = await fetch('/api/analyze', {
             method: 'POST',
             body: formData,
             signal: controller.signal
