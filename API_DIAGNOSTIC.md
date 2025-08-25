@@ -111,3 +111,4 @@ Doit retourner :
 4. **Vérifie les variables d'environnement**
 
 L'erreur 500 devrait maintenant être résolue avec des logs détaillés pour identifier le problème exact !
+

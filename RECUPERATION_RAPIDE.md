@@ -65,3 +65,4 @@ Si tu ne peux pas accéder aux clés API :
 - Vérifie tes permissions
 
 **Ton application sera opérationnelle en 5 minutes !** ⚡
+

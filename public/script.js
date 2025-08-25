@@ -303,16 +303,38 @@ async function analyzeImages() {
 
     const description = document.getElementById('description')?.value || '';
     
-    // Récupérer les questions dynamiques selon le profil
-    console.log('🔍 Récupération des questions dynamiques...');
+    // ÉTAPE 1: Générer et afficher les questions hyper-pertinentes avec DeepSeek
+    console.log('🔍 ÉTAPE 1: Génération des questions DeepSeek ultra-pertinentes...');
     console.log('👤 Profil utilisateur:', userProfile);
     console.log('📝 Description:', description);
     
+    // Afficher le message de chargement DeepSeek
+    const loadingSection = document.getElementById('loadingSection');
+    const resultsSection = document.getElementById('resultsSection');
+    
+    if (loadingSection) {
+        loadingSection.style.display = 'block';
+        // Mettre à jour le message pour DeepSeek
+        const loadingText = loadingSection.querySelector('.loading-text');
+        if (loadingText) {
+            loadingText.innerHTML = `
+                <h2>🤖 DeepSeek Génère vos Questions Ultra-Pertinentes</h2>
+                <p>Analyse de votre profil et de votre projet en cours...</p>
+                <div class="loading-dots">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            `;
+        }
+    }
+    if (resultsSection) resultsSection.style.display = 'none';
+    
     const questions = await getDynamicQuestions(description);
-    console.log('❓ Questions générées:', questions);
+    console.log('❓ Questions DeepSeek générées:', questions);
     
     if (questions && questions.length > 0) {
-        console.log('✅ Affichage des questions dynamiques...');
+        console.log('✅ Affichage des questions DeepSeek ultra-pertinentes...');
         // Afficher les questions dans l'interface existante
         const answers = await showDynamicQuestionsInline(questions);
         console.log('📝 Réponses utilisateur:', answers);
@@ -326,17 +348,10 @@ async function analyzeImages() {
         userProfile = { ...userProfile, ...answers };
         console.log('👤 Profil enrichi:', userProfile);
     } else {
-        console.log('⚠️ Aucune question dynamique générée');
+        console.log('⚠️ Aucune question DeepSeek générée');
     }
     
-    // Afficher la section de chargement
-    const loadingSection = document.getElementById('loadingSection');
-    const resultsSection = document.getElementById('resultsSection');
-    
-    if (loadingSection) loadingSection.style.display = 'block';
-    if (resultsSection) resultsSection.style.display = 'none';
-    
-    // Démarrer l'animation de chargement avec étapes détaillées
+    // Démarrer l'animation de chargement avec étapes détaillées pour l'analyse
     startDetailedLoadingAnimation();
 
     const formData = new FormData();
@@ -444,9 +459,15 @@ function startNewAnalysis() {
     updateAnalyzeButton();
 }
 
-// Results display functions
+// Results display functions - ULTRA-DÉTAILLÉE
 function displayResults(result) {
-    console.log('Résultat reçu:', result);
+    console.log('📊 Résultat ultra-détaillé reçu:', result);
+    
+    const resultsSection = document.getElementById('resultsSection');
+    const loadingSection = document.getElementById('loadingSection');
+    
+    if (loadingSection) loadingSection.style.display = 'none';
+    if (resultsSection) resultsSection.style.display = 'block';
     
     // Vérifier si on a une analyse directe ou dans result.analysis
     const analysis = result.analysis || result;
@@ -462,57 +483,281 @@ function displayResults(result) {
     // Adapter selon le format reçu
     const pieces = analysis.pieces || analysis.travaux?.pieces || [];
     const analyseGlobale = analysis.analyse_globale || analysis.travaux?.analyse_globale || {};
+    const planning = analysis.planning_detaille || analysis.travaux?.planning_detaille || {};
+    const conseils = analysis.conseils_personnalises || analysis.travaux?.conseils_personnalises || {};
     
-    // Mettre à jour les statistiques globales
-    updateGlobalStats(analyseGlobale);
-    
-    displayPieces(pieces);
-    displayTravauxArtisan(analyseGlobale);
-    displayTravauxBricolage(analyseGlobale);
-    displayPlanning(analyseGlobale);
+    // Afficher l'analyse ultra-détaillée
+    displayUltraDetailedAnalysis(analyseGlobale, pieces, planning, conseils);
 }
 
-function updateGlobalStats(analyseGlobale) {
-    // Mettre à jour le coût total
-    const totalCostElement = document.getElementById('totalCost');
-    if (totalCostElement && analyseGlobale.cout_total) {
-        totalCostElement.textContent = `${analyseGlobale.cout_total}€`;
-    }
+// Fonction d'affichage ultra-détaillée et magnifique
+function displayUltraDetailedAnalysis(analyseGlobale, pieces, planning, conseils) {
+    const resultsSection = document.getElementById('resultsSection');
     
-    // Mettre à jour la durée totale
-    const totalDurationElement = document.getElementById('totalDuration');
-    if (totalDurationElement && analyseGlobale.duree_totale) {
-        totalDurationElement.textContent = analyseGlobale.duree_totale;
-    }
-    
-    // Mettre à jour le niveau de difficulté
-    const difficultyElement = document.getElementById('difficultyLevel');
-    if (difficultyElement && analyseGlobale.niveau_difficulte) {
-        difficultyElement.textContent = `${analyseGlobale.niveau_difficulte}%`;
-    }
-    
-    // Mettre à jour les coûts détaillés
-    const materialsCostElement = document.getElementById('materialsCost');
-    if (materialsCostElement && analyseGlobale.cout_materiaux_total) {
-        materialsCostElement.textContent = `${analyseGlobale.cout_materiaux_total}€`;
-    }
-    
-    const laborCostElement = document.getElementById('laborCost');
-    if (laborCostElement && analyseGlobale.cout_main_oeuvre_total) {
-        laborCostElement.textContent = `${analyseGlobale.cout_main_oeuvre_total}€`;
-    }
-    
-    const furnitureCostElement = document.getElementById('furnitureCost');
-    if (furnitureCostElement && analyseGlobale.cout_meubles_total) {
-        furnitureCostElement.textContent = `${analyseGlobale.cout_meubles_total}€`;
-    }
-    
-    // Mettre à jour le score global
-    const scoreElement = document.getElementById('globalScore');
-    if (scoreElement && analyseGlobale.score_global) {
-        scoreElement.textContent = analyseGlobale.score_global;
-        scoreElement.className = `score-badge ${analyseGlobale.score_global}`;
-    }
+    resultsSection.innerHTML = `
+        <div class="container">
+            <!-- Header Ultra-Détaillé -->
+            <div class="results-header-ultra">
+                <div class="header-content">
+                    <h1>🏠 ANALYSE ULTRA-DÉTAILLÉE DE RÉNOVATION</h1>
+                    <p>Étude complète et professionnelle de votre projet</p>
+                    <div class="analysis-badges">
+                        <span class="badge ultra">✨ Ultra-Complète</span>
+                        <span class="badge ai">🤖 IA Avancée</span>
+                        <span class="badge professional">👨‍🔧 Professionnel</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Résumé Global Ultra-Détaillé -->
+            <div class="global-summary-ultra">
+                <h2>📊 RÉSUMÉ GLOBAL ULTRA-DÉTAILLÉ</h2>
+                <div class="summary-grid-ultra">
+                    <div class="summary-card-ultra">
+                        <div class="card-icon">📏</div>
+                        <div class="card-content">
+                            <h3>Surface Totale</h3>
+                            <span class="card-value">${analyseGlobale.surface_totale || analyseGlobale.totalSurface || 'Calcul en cours...'}</span>
+                            <span class="card-detail">Surface calculée précisément</span>
+                        </div>
+                    </div>
+                    <div class="summary-card-ultra">
+                        <div class="card-icon">⏱️</div>
+                        <div class="card-content">
+                            <h3>Durée Estimée</h3>
+                            <span class="card-value">${analyseGlobale.duree_estimee || analyseGlobale.estimatedDuration || 'Estimation en cours...'}</span>
+                            <span class="card-detail">Planning optimisé</span>
+                        </div>
+                    </div>
+                    <div class="summary-card-ultra">
+                        <div class="card-icon">💰</div>
+                        <div class="card-content">
+                            <h3>Coût Total</h3>
+                            <span class="card-value">${analyseGlobale.cout_total_estime || analyseGlobale.totalCost || 'Estimation en cours...'}</span>
+                            <span class="card-detail">Prix réalistes inclus</span>
+                        </div>
+                    </div>
+                    <div class="summary-card-ultra">
+                        <div class="card-icon">🎯</div>
+                        <div class="card-content">
+                            <h3>Complexité</h3>
+                            <span class="card-value">${analyseGlobale.complexite || analyseGlobale.complexity || 'Évaluation en cours...'}</span>
+                            <span class="card-detail">Niveau de difficulté</span>
+                        </div>
+                    </div>
+                    <div class="summary-card-ultra">
+                        <div class="card-icon">📈</div>
+                        <div class="card-content">
+                            <h3>Valeur Ajoutée</h3>
+                            <span class="card-value">${analyseGlobale.valeur_ajoutee || analyseGlobale.valueAdded || 'Calcul en cours...'}</span>
+                            <span class="card-detail">Plus-value estimée</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Pièces Ultra-Détaillées -->
+            <div class="rooms-ultra">
+                <h2>🏠 ANALYSE ULTRA-DÉTAILLÉE PAR PIÈCE</h2>
+                ${pieces.map((piece, index) => `
+                    <div class="room-card-ultra">
+                        <div class="room-header-ultra">
+                            <h3>${piece.nom || piece.name || `Pièce ${index + 1}`}</h3>
+                            <div class="room-status ${piece.etat_general || piece.generalCondition || 'unknown'}">
+                                ${piece.etat_general || piece.generalCondition || 'Non évalué'}
+                            </div>
+                        </div>
+                        
+                        <div class="room-metrics-ultra">
+                            <div class="metric-item">
+                                <span class="metric-label">📏 Surface</span>
+                                <span class="metric-value">${piece.surface || piece.area || 'Calcul en cours...'}</span>
+                            </div>
+                            <div class="metric-item">
+                                <span class="metric-label">📐 Dimensions</span>
+                                <span class="metric-value">${piece.dimensions || piece.dimensions || 'Mesure en cours...'}</span>
+                            </div>
+                            <div class="metric-item">
+                                <span class="metric-label">🏗️ État</span>
+                                <span class="metric-value">${piece.etat_general || piece.generalCondition || 'Évaluation en cours...'}</span>
+                            </div>
+                        </div>
+                        
+                        ${piece.elements_identifies && piece.elements_identifies.length > 0 ? `
+                            <div class="elements-section-ultra">
+                                <h4>🔍 ÉLÉMENTS IDENTIFIÉS ET ANALYSÉS</h4>
+                                <div class="elements-grid-ultra">
+                                    ${piece.elements_identifies.map(element => `
+                                        <div class="element-card-ultra">
+                                            <div class="element-header-ultra">
+                                                <span class="element-icon">${getElementIcon(element.type)}</span>
+                                                <span class="element-type">${element.type}</span>
+                                                <span class="element-condition ${element.etat || element.condition}">${element.etat || element.condition}</span>
+                                            </div>
+                                            <div class="element-details-ultra">
+                                                <p><strong>Matériau:</strong> ${element.materiau || element.material || 'Non identifié'}</p>
+                                                <p><strong>Dimensions:</strong> ${element.dimensions || 'Non mesurées'}</p>
+                                                <p><strong>Travaux nécessaires:</strong> ${element.travaux_necessaires || element.requiredWork || 'À évaluer'}</p>
+                                                <div class="element-costs-ultra">
+                                                    <span class="cost-item">Matériaux: ${element.cout_materiaux || element.materialCost || 'Non estimé'}</span>
+                                                    <span class="cost-item">Main d'œuvre: ${element.cout_main_oeuvre || element.laborCost || 'Non estimé'}</span>
+                                                    <span class="cost-item">Durée: ${element.duree || element.duration || 'Non estimée'}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        ` : ''}
+                        
+                        ${piece.cout_total_piece ? `
+                            <div class="room-costs-ultra">
+                                <h4>💰 COÛTS DÉTAILLÉS DE LA PIÈCE</h4>
+                                <div class="costs-breakdown-ultra">
+                                    <div class="cost-category">
+                                        <span class="cost-label">Matériaux</span>
+                                        <span class="cost-value">${piece.cout_total_piece.materiaux || piece.cout_total_piece.materials || 'Non estimé'}</span>
+                                    </div>
+                                    <div class="cost-category">
+                                        <span class="cost-label">Main d'œuvre</span>
+                                        <span class="cost-value">${piece.cout_total_piece.main_oeuvre || piece.cout_total_piece.labor || 'Non estimé'}</span>
+                                    </div>
+                                    <div class="cost-category">
+                                        <span class="cost-label">Meubles</span>
+                                        <span class="cost-value">${piece.cout_total_piece.meubles || piece.cout_total_piece.furniture || 'Non estimé'}</span>
+                                    </div>
+                                    <div class="cost-category total">
+                                        <span class="cost-label">TOTAL PIÈCE</span>
+                                        <span class="cost-value">${piece.cout_total_piece.total || 'Non estimé'}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        ` : ''}
+                    </div>
+                `).join('')}
+            </div>
+            
+            <!-- Planning Ultra-Détaillé -->
+            ${planning.phases && planning.phases.length > 0 ? `
+                <div class="planning-ultra">
+                    <h2>📅 PLANNING ULTRA-DÉTAILLÉ</h2>
+                    <div class="planning-overview-ultra">
+                        <div class="planning-summary-ultra">
+                            <span class="planning-duration">Durée totale: ${planning.duree_totale || planning.totalDuration || 'Non estimée'}</span>
+                            <span class="planning-cost">Coût total: ${planning.cout_total || planning.totalCost || 'Non estimé'}</span>
+                        </div>
+                    </div>
+                    <div class="phases-timeline-ultra">
+                        ${planning.phases.map((phase, index) => `
+                            <div class="phase-card-ultra">
+                                <div class="phase-header-ultra">
+                                    <div class="phase-number">${index + 1}</div>
+                                    <div class="phase-info">
+                                        <h3>${phase.nom || phase.name}</h3>
+                                        <span class="phase-duration">${phase.duree || phase.duration}</span>
+                                    </div>
+                                    <div class="phase-cost">${phase.cout_estime || phase.estimatedCost || 'Non estimé'}</div>
+                                </div>
+                                ${phase.taches && phase.taches.length > 0 ? `
+                                    <div class="tasks-ultra">
+                                        <h4>📋 Tâches Détaillées</h4>
+                                        ${phase.taches.map(task => `
+                                            <div class="task-card-ultra">
+                                                <div class="task-header-ultra">
+                                                    <span class="task-name">${task.nom || task.name}</span>
+                                                    <span class="task-duration">${task.duree || task.duration}</span>
+                                                    <span class="task-difficulty ${task.difficulte || task.difficulty}">${task.difficulte || task.difficulty}</span>
+                                                </div>
+                                                <div class="task-description">${task.description || 'Description en cours...'}</div>
+                                                ${task.dependances ? `<div class="task-dependencies">Dépendances: ${task.dependances}</div>` : ''}
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                ` : ''}
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            ` : ''}
+            
+            <!-- Conseils Ultra-Personnalisés -->
+            ${Object.keys(conseils).length > 0 ? `
+                <div class="advice-ultra">
+                    <h2>💡 CONSEILS ULTRA-PERSONNALISÉS</h2>
+                    <div class="advice-grid-ultra">
+                        ${conseils.optimisations_budget ? `
+                            <div class="advice-card-ultra">
+                                <div class="advice-icon">💰</div>
+                                <div class="advice-content">
+                                    <h3>Optimisations Budget</h3>
+                                    <p>${conseils.optimisations_budget}</p>
+                                </div>
+                            </div>
+                        ` : ''}
+                        ${conseils.risques ? `
+                            <div class="advice-card-ultra">
+                                <div class="advice-icon">⚠️</div>
+                                <div class="advice-content">
+                                    <h3>Risques Identifiés</h3>
+                                    <p>${conseils.risques}</p>
+                                </div>
+                            </div>
+                        ` : ''}
+                        ${conseils.precautions ? `
+                            <div class="advice-card-ultra">
+                                <div class="advice-icon">🛡️</div>
+                                <div class="advice-content">
+                                    <h3>Précautions</h3>
+                                    <p>${conseils.precautions}</p>
+                                </div>
+                            </div>
+                        ` : ''}
+                        ${conseils.valeur_ajoutée ? `
+                            <div class="advice-card-ultra">
+                                <div class="advice-icon">📈</div>
+                                <div class="advice-content">
+                                    <h3>Valeur Ajoutée</h3>
+                                    <p>${conseils.valeur_ajoutée}</p>
+                                </div>
+                            </div>
+                        ` : ''}
+                        ${conseils.recommandations ? `
+                            <div class="advice-card-ultra">
+                                <div class="advice-icon">🎯</div>
+                                <div class="advice-content">
+                                    <h3>Recommandations Finales</h3>
+                                    <p>${conseils.recommandations}</p>
+                                </div>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            ` : ''}
+            
+            <!-- Bouton Nouvelle Analyse -->
+            <div class="new-analysis-ultra">
+                <button onclick="resetAnalysis()" class="btn-ultra">
+                    <span class="btn-icon">🔄</span>
+                    <span class="btn-text">Nouvelle Analyse Ultra-Détaillée</span>
+                </button>
+            </div>
+        </div>
+    `;
+}
+
+// Fonction helper pour les icônes d'éléments
+function getElementIcon(type) {
+    const icons = {
+        'mur': '🧱',
+        'sol': '🏠',
+        'plafond': '⬆️',
+        'fenetre': '🪟',
+        'porte': '🚪',
+        'electricite': '⚡',
+        'plomberie': '🚿',
+        'chauffage': '🔥'
+    };
+    return icons[type] || '🔍';
 }
 
 function displayPieces(pieces) {
@@ -1010,15 +1255,16 @@ function startDetailedLoadingAnimation() {
     
     // Messages de chargement détaillés et réalistes
     const detailedLoadingMessages = [
-        "🔍 Analyse des images en cours...",
-        "📏 Calcul du métrage et des dimensions...",
-        "🏠 Identification des éléments (murs, sols, plafonds)...",
+        "🔍 ÉTAPE 2 : Analyse ultra-détaillée en cours...",
+        "📏 Calcul précis du métrage et dimensions...",
+        "🏠 Identification complète des éléments...",
         "🌐 Recherche des prix réels sur internet...",
-        "💰 Estimation des prix selon votre budget...",
+        "💰 Estimation détaillée des coûts...",
         "🛠️ Analyse de la complexité des travaux...",
-        "📋 Préparation du planning détaillé...",
-        "🎯 Adaptation selon votre profil bricolage...",
-        "📊 Finalisation de l'analyse ultra-détaillée..."
+        "📋 Création du planning détaillé...",
+        "🎯 Personnalisation selon vos réponses...",
+        "📊 Génération de l'analyse ultra-complète...",
+        "✨ Finalisation de l'étude complète..."
     ];
     
     // Afficher le premier message
@@ -1093,8 +1339,8 @@ async function showDynamicQuestionsInline(questions) {
         questionsSection.innerHTML = `
             <div class="container">
                 <div class="questions-header">
-                    <h2>🎯 Questions personnalisées</h2>
-                    <p>Répondez à ces questions pour une analyse ultra-précise adaptée à votre profil</p>
+                    <h2>🎯 Questions Hyper-Pertinentes</h2>
+                    <p>Étape 1/2 : Répondez à ces questions générées par IA pour une analyse ultra-précise</p>
                 </div>
                 <form id="dynamicQuestionsForm" class="questions-form">
                     ${questions.map((q, index) => `
@@ -1122,7 +1368,7 @@ async function showDynamicQuestionsInline(questions) {
                     `).join('')}
                     <div class="questions-actions">
                         <button type="button" class="btn-secondary" onclick="cancelQuestions()">Retour</button>
-                        <button type="submit" class="btn-primary">Lancer l'analyse personnalisée</button>
+                        <button type="submit" class="btn-primary">Étape 2 : Analyse Ultra-Détaillée</button>
                     </div>
                 </form>
             </div>

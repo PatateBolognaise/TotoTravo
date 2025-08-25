@@ -78,3 +78,4 @@ curl https://tototravo.onrender.com/api/test
 4. **Teste l'API**
 
 **Ces corrections devraient résoudre l'erreur 500 !** 🎉
+

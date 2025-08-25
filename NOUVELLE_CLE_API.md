@@ -83,3 +83,4 @@ curl https://tototravo.onrender.com/api/test
 4. **Teste l'upload d'images**
 
 **La nouvelle clé API devrait résoudre l'erreur 401 !** 🎉
+

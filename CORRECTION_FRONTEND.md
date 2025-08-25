@@ -151,3 +151,4 @@ curl http://localhost:5000/api/test
 **L'IA fournit une analyse complète avec métrage, prix des meubles, matériaux spécifiques, produits concrets, et recommandations personnalisées !** 🚀
 
 **Plus d'erreur "Format de réponse invalide" - Tout fonctionne parfaitement !** ✅
+

@@ -157,3 +157,4 @@ http://localhost:5000
 **Déploie sur Render et teste ton application révolutionnaire !** 🎉
 
 **L'IA est maintenant connectée au web pour des estimations ultra-précises !** 🌐
+

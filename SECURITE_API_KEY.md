@@ -91,3 +91,4 @@ Si tu ne peux pas accéder à la page des clés API :
 - Vérifie les permissions de ton compte
 
 **La sécurité de la clé API est cruciale pour éviter les abus !** 🔒
+

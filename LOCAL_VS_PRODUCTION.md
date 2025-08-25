@@ -86,3 +86,4 @@ curl https://tototravo.onrender.com/api/test
 - ✅ **Simplicité** : Configuration centralisée
 
 **Ton application fonctionne parfaitement sans fichier `.env` local !** 🎉
+

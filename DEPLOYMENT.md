@@ -120,3 +120,4 @@ Une fois déployé, teste ces URLs:
 ✅ Performance optimale  
 ✅ CDN global  
 ✅ Analytics intégrés
+
