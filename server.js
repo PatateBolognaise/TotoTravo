@@ -412,6 +412,11 @@ Réponds UNIQUEMENT avec le JSON valide.`;
 // Servir les fichiers statiques
 app.use(express.static('public'));
 
+// Route de health check pour Render
+app.get('/api/health', (req, res) => {
+    res.json({ status: 'OK', timestamp: new Date().toISOString() });
+});
+
 // Route par défaut
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
