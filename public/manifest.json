@@ -1,0 +1,13 @@
+{
+  "name": "TotoTravo - Analyse Rénovation IA",
+  "short_name": "TotoTravo",
+  "description": "Analysez vos photos de rénovation et obtenez des estimations détaillées avec l'IA",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#667eea",
+  "theme_color": "#667eea",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "fr",
+  "categories": ["productivity", "utilities"]
+}
