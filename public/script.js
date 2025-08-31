@@ -451,46 +451,25 @@ const ResultsManager = {
             
             container.innerHTML = `
                 <div class="results-header">
-                    <h2>🎯 Analyse de votre projet</h2>
-                    <p>Voici votre estimation personnalisée basée sur ${results.images?.length || 0} image(s)</p>
+                    <h2>🏗️ Diagnostic Technique Complet</h2>
+                    <p>Analyse professionnelle basée sur ${results.images?.length || 0} image(s) - Niveau Bureau d'Études</p>
                 </div>
 
-                <div class="results-summary">
-                    <div class="summary-grid">
-                        <div class="summary-card">
-                            <i class="fas fa-ruler-combined"></i>
-                            <h3>Surface totale</h3>
-                            <div class="summary-value">${analysis.analyse_globale?.surface_totale || 'N/A'}</div>
-                        </div>
-                        <div class="summary-card">
-                            <i class="fas fa-clock"></i>
-                            <h3>Durée estimée</h3>
-                            <div class="summary-value">${analysis.analyse_globale?.duree_estimee || 'N/A'}</div>
-                        </div>
-                        <div class="summary-card">
-                            <i class="fas fa-euro-sign"></i>
-                            <h3>Coût total</h3>
-                            <div class="summary-value">${analysis.analyse_globale?.cout_total_estime || 'N/A'}</div>
-                        </div>
-                        <div class="summary-card">
-                            <i class="fas fa-tools"></i>
-                            <h3>Complexité</h3>
-                            <div class="summary-value">${analysis.analyse_globale?.complexite || 'N/A'}</div>
-                        </div>
-                    </div>
-                </div>
-
-                ${analysis.decomposition_couts ? ResultsManager.renderCostBreakdown(analysis.decomposition_couts) : ''}
+                ${analysis.resume_executif ? ResultsManager.renderExecutiveSummary(analysis.resume_executif) : ''}
                 
-                ${analysis.pieces ? ResultsManager.renderPieces(analysis.pieces) : ''}
+                ${analysis.diagnostic_lots ? ResultsManager.renderTechnicalLots(analysis.diagnostic_lots) : ''}
                 
-                ${analysis.planning_travaux ? ResultsManager.renderPlanning(analysis.planning_travaux) : ''}
+                ${analysis.decomposition_couts ? ResultsManager.renderDetailedCostBreakdown(analysis.decomposition_couts) : ''}
                 
-                ${analysis.alternatives ? ResultsManager.renderAlternatives(analysis.alternatives) : ''}
+                ${analysis.planning_travaux ? ResultsManager.renderDetailedPlanning(analysis.planning_travaux) : ''}
                 
-                ${analysis.conseils ? ResultsManager.renderAdvice(analysis.conseils) : ''}
+                ${analysis.scenarios ? ResultsManager.renderScenarios(analysis.scenarios) : ''}
                 
-                ${analysis.recommandations_securite ? ResultsManager.renderSafety(analysis.recommandations_securite) : ''}
+                ${analysis.questions_complementaires ? ResultsManager.renderQuestions(analysis.questions_complementaires) : ''}
+                
+                ${analysis.hypotheses_prises ? ResultsManager.renderHypotheses(analysis.hypotheses_prises) : ''}
+                
+                ${analysis.risques_et_inconnues ? ResultsManager.renderRisks(analysis.risques_et_inconnues) : ''}
             `;
             
             console.log('✅ Résultats affichés avec succès');
@@ -559,58 +538,338 @@ const ResultsManager = {
         `;
     },
 
-    renderCostBreakdown: (decomposition) => {
-        if (!decomposition) return '';
+    renderExecutiveSummary: (resume) => {
+        if (!resume) return '';
         
         return `
-            <div class="cost-breakdown-section">
-                <h3>💰 Décomposition des coûts</h3>
-                <div class="cost-breakdown-grid">
-                    <div class="cost-item">
-                        <i class="fas fa-hammer"></i>
-                        <h4>Matériaux</h4>
-                        <div class="cost-value">${decomposition.materiaux || 'N/A'}</div>
+            <div class="executive-summary-section">
+                <h3>📋 Résumé Exécutif</h3>
+                <div class="executive-summary-grid">
+                    <div class="summary-card">
+                        <i class="fas fa-ruler-combined"></i>
+                        <h4>Surface totale</h4>
+                        <div class="summary-value">${resume.surface_totale || 'N/A'}</div>
                     </div>
-                    <div class="cost-item">
-                        <i class="fas fa-user-tie"></i>
-                        <h4>Main d'œuvre</h4>
-                        <div class="cost-value">${decomposition.main_oeuvre || 'N/A'}</div>
-                    </div>
-                    <div class="cost-item">
+                    <div class="summary-card">
                         <i class="fas fa-tools"></i>
-                        <h4>Outillage</h4>
-                        <div class="cost-value">${decomposition.outillage || 'N/A'}</div>
+                        <h4>Complexité</h4>
+                        <div class="summary-value">${resume.complexite_globale || 'N/A'}</div>
                     </div>
-                    <div class="cost-item">
-                        <i class="fas fa-trash"></i>
-                        <h4>Déchets</h4>
-                        <div class="cost-value">${decomposition.dechets || 'N/A'}</div>
+                    <div class="summary-card">
+                        <i class="fas fa-clock"></i>
+                        <h4>Durée totale</h4>
+                        <div class="summary-value">${resume.duree_totale || 'N/A'}</div>
                     </div>
-                    <div class="cost-item">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        <h4>Imprévus</h4>
-                        <div class="cost-value">${decomposition.imprevus || 'N/A'}</div>
+                    <div class="summary-card">
+                        <i class="fas fa-euro-sign"></i>
+                        <h4>Coût médian</h4>
+                        <div class="summary-value">${resume.cout_total?.mediane || 'N/A'}</div>
                     </div>
+                </div>
+                
+                ${resume.priorites_urgentes ? `
+                    <div class="priorities-section">
+                        <h4>🚨 Priorités urgentes (P0/P1)</h4>
+                        <ul>${resume.priorites_urgentes.map(p => `<li>${p}</li>`).join('')}</ul>
+                    </div>
+                ` : ''}
+                
+                ${resume.risques_majeurs ? `
+                    <div class="major-risks-section">
+                        <h4>⚠️ Risques majeurs</h4>
+                        <ul>${resume.risques_majeurs.map(r => `<li>${r}</li>`).join('')}</ul>
+                    </div>
+                ` : ''}
+            </div>
+        `;
+    },
+
+    renderTechnicalLots: (lots) => {
+        if (!Array.isArray(lots) || lots.length === 0) return '';
+        
+        return `
+            <div class="technical-lots-section">
+                <h3>🔧 Diagnostic par Lots Techniques</h3>
+                <div class="lots-grid">
+                    ${lots.map(lot => `
+                        <div class="lot-card">
+                            <div class="lot-header">
+                                <h4>${lot.lot}</h4>
+                                <span class="lot-status ${lot.etat?.toLowerCase()}">${lot.etat || 'N/A'}</span>
+                                <span class="lot-urgency ${lot.urgence?.toLowerCase()}">${lot.urgence || 'N/A'}</span>
+                            </div>
+                            <div class="lot-details">
+                                ${lot.causes_probables ? `
+                                    <div class="lot-causes">
+                                        <h5>🔍 Causes probables</h5>
+                                        <ul>${lot.causes_probables.map(c => `<li>${c}</li>`).join('')}</ul>
+                                    </div>
+                                ` : ''}
+                                
+                                ${lot.risques ? `
+                                    <div class="lot-risks">
+                                        <h5>⚠️ Risques</h5>
+                                        <ul>${lot.risques.map(r => `<li>${r}</li>`).join('')}</ul>
+                                    </div>
+                                ` : ''}
+                                
+                                ${lot.travaux_recommandes ? `
+                                    <div class="lot-works">
+                                        <h5>🔨 Travaux recommandés</h5>
+                                        <p><strong>Description:</strong> ${lot.travaux_recommandes.description}</p>
+                                        ${lot.travaux_recommandes.quantites ? `
+                                            <div class="quantities">
+                                                <strong>Quantités:</strong>
+                                                ${lot.travaux_recommandes.quantites.surface ? `<span>Surface: ${lot.travaux_recommandes.quantites.surface}</span>` : ''}
+                                                ${lot.travaux_recommandes.quantites.longueur ? `<span>Longueur: ${lot.travaux_recommandes.quantites.longueur}</span>` : ''}
+                                                ${lot.travaux_recommandes.quantites.unites ? `<span>Unités: ${lot.travaux_recommandes.quantites.unites}</span>` : ''}
+                                            </div>
+                                        ` : ''}
+                                        <p><strong>Sévérité:</strong> ${lot.travaux_recommandes.severite}</p>
+                                    </div>
+                                ` : ''}
+                                
+                                <div class="lot-costs">
+                                    <h5>💰 Coûts estimés</h5>
+                                    <div class="cost-ranges">
+                                        <span class="cost-range low">Basse: ${lot.cout_estime?.basse || 'N/A'}</span>
+                                        <span class="cost-range medium">Médiane: ${lot.cout_estime?.mediane || 'N/A'}</span>
+                                        <span class="cost-range high">Haute: ${lot.cout_estime?.haute || 'N/A'}</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="lot-info">
+                                    <span><strong>Durée:</strong> ${lot.duree || 'N/A'}</span>
+                                    <span><strong>Impact occupation:</strong> ${lot.impact_occupation || 'N/A'}</span>
+                                </div>
+                                
+                                ${lot.dependances ? `
+                                    <div class="lot-dependencies">
+                                        <h5>🔗 Dépendances</h5>
+                                        <p>${lot.dependances.join(', ')}</p>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                    `).join('')}
                 </div>
             </div>
         `;
     },
 
-    renderPlanning: (planning) => {
+    renderDetailedCostBreakdown: (decomposition) => {
+        if (!decomposition) return '';
+        
+        return `
+            <div class="detailed-cost-breakdown-section">
+                <h3>💰 Décomposition Détaillée des Coûts</h3>
+                <div class="cost-breakdown-table">
+                    <div class="cost-breakdown-header">
+                        <div class="cost-category">Catégorie</div>
+                        <div class="cost-basse">Fourchette Basse</div>
+                        <div class="cost-mediane">Fourchette Médiane</div>
+                        <div class="cost-haute">Fourchette Haute</div>
+                    </div>
+                    <div class="cost-breakdown-row">
+                        <div class="cost-category">Matériaux</div>
+                        <div class="cost-basse">${decomposition.materiaux?.basse || 'N/A'}</div>
+                        <div class="cost-mediane">${decomposition.materiaux?.mediane || 'N/A'}</div>
+                        <div class="cost-haute">${decomposition.materiaux?.haute || 'N/A'}</div>
+                    </div>
+                    <div class="cost-breakdown-row">
+                        <div class="cost-category">Main d'œuvre</div>
+                        <div class="cost-basse">${decomposition.main_oeuvre?.basse || 'N/A'}</div>
+                        <div class="cost-mediane">${decomposition.main_oeuvre?.mediane || 'N/A'}</div>
+                        <div class="cost-haute">${decomposition.main_oeuvre?.haute || 'N/A'}</div>
+                    </div>
+                    <div class="cost-breakdown-row">
+                        <div class="cost-category">Évacuation/Déchets</div>
+                        <div class="cost-basse">${decomposition.evacuation_dechets?.basse || 'N/A'}</div>
+                        <div class="cost-mediane">${decomposition.evacuation_dechets?.mediane || 'N/A'}</div>
+                        <div class="cost-haute">${decomposition.evacuation_dechets?.haute || 'N/A'}</div>
+                    </div>
+                    <div class="cost-breakdown-row">
+                        <div class="cost-category">Marge/Aléas</div>
+                        <div class="cost-basse">${decomposition.marge_aleas?.basse || 'N/A'}</div>
+                        <div class="cost-mediane">${decomposition.marge_aleas?.mediane || 'N/A'}</div>
+                        <div class="cost-haute">${decomposition.marge_aleas?.haute || 'N/A'}</div>
+                    </div>
+                </div>
+                <div class="cost-parameters">
+                    <span><strong>TVA:</strong> ${decomposition.tva || '20%'}</span>
+                    <span><strong>Multiplicateur régional:</strong> ${decomposition.multiplicateur_regional || '1.0'}</span>
+                </div>
+            </div>
+        `;
+    },
+
+    renderDetailedPlanning: (planning) => {
         if (!planning) return '';
         
-        const phases = Object.entries(planning).map(([phase, description]) => `
+        const phases = Object.entries(planning).map(([phase, details]) => `
             <div class="planning-phase">
-                <h4>${phase.replace('phase_', 'Phase ').toUpperCase()}</h4>
-                <p>${description}</p>
+                <h4>${details.nom || phase.replace('phase_', 'Phase ').toUpperCase()}</h4>
+                <div class="phase-details">
+                    <p><strong>Lots inclus:</strong> ${details.lots?.join(', ') || 'N/A'}</p>
+                    <p><strong>Durée:</strong> ${details.duree || 'N/A'}</p>
+                    <p><strong>Dépendances:</strong> ${details.dependances?.join(', ') || 'Aucune'}</p>
+                    <p><strong>Impact occupation:</strong> ${details.impact_occupation || 'N/A'}</p>
+                </div>
             </div>
         `).join('');
         
         return `
-            <div class="planning-section">
-                <h3>📅 Planning des travaux</h3>
+            <div class="detailed-planning-section">
+                <h3>📅 Planning Détaillé des Travaux</h3>
                 <div class="planning-phases">
                     ${phases}
+                </div>
+            </div>
+        `;
+    },
+
+    renderScenarios: (scenarios) => {
+        if (!scenarios) return '';
+        
+        return `
+            <div class="scenarios-section">
+                <h3>🔄 Scénarios de Travaux</h3>
+                <div class="scenarios-grid">
+                    ${scenarios.eco ? `
+                        <div class="scenario-card eco">
+                            <h4>${scenarios.eco.nom}</h4>
+                            <p class="scenario-description">${scenarios.eco.description}</p>
+                            <div class="scenario-cost">${scenarios.eco.cout_total}</div>
+                            <div class="scenario-details">
+                                <span><strong>Performance énergétique:</strong> ${scenarios.eco.performance_energetique}</span>
+                                <span><strong>Durée:</strong> ${scenarios.eco.duree}</span>
+                            </div>
+                            <div class="scenario-pros-cons">
+                                <div class="pros">
+                                    <h5>Avantages</h5>
+                                    <ul>${scenarios.eco.avantages?.map(a => `<li>${a}</li>`).join('') || ''}</ul>
+                                </div>
+                                <div class="cons">
+                                    <h5>Inconvénients</h5>
+                                    <ul>${scenarios.eco.inconvenients?.map(i => `<li>${i}</li>`).join('') || ''}</ul>
+                                </div>
+                            </div>
+                        </div>
+                    ` : ''}
+                    
+                    ${scenarios.standard ? `
+                        <div class="scenario-card standard">
+                            <h4>${scenarios.standard.nom}</h4>
+                            <p class="scenario-description">${scenarios.standard.description}</p>
+                            <div class="scenario-cost">${scenarios.standard.cout_total}</div>
+                            <div class="scenario-details">
+                                <span><strong>Performance énergétique:</strong> ${scenarios.standard.performance_energetique}</span>
+                                <span><strong>Durée:</strong> ${scenarios.standard.duree}</span>
+                            </div>
+                            <div class="scenario-pros-cons">
+                                <div class="pros">
+                                    <h5>Avantages</h5>
+                                    <ul>${scenarios.standard.avantages?.map(a => `<li>${a}</li>`).join('') || ''}</ul>
+                                </div>
+                                <div class="cons">
+                                    <h5>Inconvénients</h5>
+                                    <ul>${scenarios.standard.inconvenients?.map(i => `<li>${i}</li>`).join('') || ''}</ul>
+                                </div>
+                            </div>
+                        </div>
+                    ` : ''}
+                    
+                    ${scenarios.premium ? `
+                        <div class="scenario-card premium">
+                            <h4>${scenarios.premium.nom}</h4>
+                            <p class="scenario-description">${scenarios.premium.description}</p>
+                            <div class="scenario-cost">${scenarios.premium.cout_total}</div>
+                            <div class="scenario-details">
+                                <span><strong>Performance énergétique:</strong> ${scenarios.premium.performance_energetique}</span>
+                                <span><strong>Durée:</strong> ${scenarios.premium.duree}</span>
+                            </div>
+                            <div class="scenario-pros-cons">
+                                <div class="pros">
+                                    <h5>Avantages</h5>
+                                    <ul>${scenarios.premium.avantages?.map(a => `<li>${a}</li>`).join('') || ''}</ul>
+                                </div>
+                                <div class="cons">
+                                    <h5>Inconvénients</h5>
+                                    <ul>${scenarios.premium.inconvenients?.map(i => `<li>${i}</li>`).join('') || ''}</ul>
+                                </div>
+                            </div>
+                        </div>
+                    ` : ''}
+                </div>
+            </div>
+        `;
+    },
+
+    renderQuestions: (questions) => {
+        if (!Array.isArray(questions) || questions.length === 0) return '';
+        
+        return `
+            <div class="questions-section">
+                <h3>❓ Questions Complémentaires</h3>
+                <p>Ces questions permettront d'affiner le diagnostic et le chiffrage</p>
+                <div class="questions-list">
+                    ${questions.map((q, index) => `
+                        <div class="question-item">
+                            <h4>Question ${index + 1}</h4>
+                            <p class="question-text">${q.question}</p>
+                            <div class="question-details">
+                                <p><strong>Objectif:</strong> ${q.objectif}</p>
+                                <p><strong>Impact sur estimation:</strong> ${q.impact_estimation}</p>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    },
+
+    renderHypotheses: (hypotheses) => {
+        if (!Array.isArray(hypotheses) || hypotheses.length === 0) return '';
+        
+        return `
+            <div class="hypotheses-section">
+                <h3>📝 Hypothèses Prises</h3>
+                <p>Informations manquantes et hypothèses retenues pour l'estimation</p>
+                <div class="hypotheses-list">
+                    ${hypotheses.map((h, index) => `
+                        <div class="hypothesis-item">
+                            <h4>Hypothèse ${index + 1}</h4>
+                            <p class="hypothesis-text">${h.hypothese}</p>
+                            <div class="hypothesis-details">
+                                <p><strong>Conséquence:</strong> ${h.consequence}</p>
+                                <p><strong>Marge d'aléas ajoutée:</strong> ${h.marge_aleas}</p>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    },
+
+    renderRisks: (risks) => {
+        if (!Array.isArray(risks) || risks.length === 0) return '';
+        
+        return `
+            <div class="risks-section">
+                <h3>⚠️ Risques et Inconnues</h3>
+                <p>Risques identifiés et leurs impacts potentiels</p>
+                <div class="risks-list">
+                    ${risks.map((r, index) => `
+                        <div class="risk-item">
+                            <h4>Risque ${index + 1}</h4>
+                            <p class="risk-text">${r.risque}</p>
+                            <div class="risk-details">
+                                <p><strong>Impact potentiel:</strong> ${r.impact_potentiel}</p>
+                                <p><strong>Probabilité:</strong> <span class="probability ${r.probabilite?.toLowerCase()}">${r.probabilite}</span></p>
+                                <p><strong>Mesure de mitigation:</strong> ${r.mitigation}</p>
+                            </div>
+                        </div>
+                    `).join('')}
                 </div>
             </div>
         `;

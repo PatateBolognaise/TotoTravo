@@ -1406,3 +1406,656 @@ body {
     }
 }
 
+/* Executive Summary Section */
+.executive-summary-section {
+    margin-bottom: var(--spacing-xl);
+}
+
+.executive-summary-section h3 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-xl);
+    text-align: center;
+}
+
+.executive-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--spacing-lg);
+    margin-bottom: var(--spacing-lg);
+}
+
+.priorities-section, .major-risks-section {
+    background: var(--bg-secondary);
+    padding: var(--spacing-lg);
+    border-radius: var(--border-radius);
+    margin-top: var(--spacing-lg);
+    border: 1px solid var(--border-color);
+}
+
+.priorities-section h4, .major-risks-section h4 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: var(--spacing-md);
+    color: var(--text-primary);
+}
+
+.priorities-section ul, .major-risks-section ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.priorities-section li, .major-risks-section li {
+    padding: var(--spacing-xs) 0;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.priorities-section li:last-child, .major-risks-section li:last-child {
+    border-bottom: none;
+}
+
+/* Technical Lots Section */
+.technical-lots-section {
+    margin-bottom: var(--spacing-xl);
+}
+
+.technical-lots-section h3 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-xl);
+    text-align: center;
+}
+
+.lots-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: var(--spacing-lg);
+}
+
+.lot-card {
+    background: var(--bg-secondary);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-color);
+    overflow: hidden;
+}
+
+.lot-header {
+    background: var(--primary-color);
+    color: var(--text-white);
+    padding: var(--spacing-md);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--spacing-sm);
+}
+
+.lot-header h4 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.lot-status, .lot-urgency {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--border-radius-sm);
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.lot-status.bon {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.lot-status.moyen {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.lot-status.dégradé {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.lot-status.critique {
+    background: #fecaca;
+    color: #7f1d1d;
+}
+
+.lot-urgency.p0 {
+    background: #fecaca;
+    color: #7f1d1d;
+}
+
+.lot-urgency.p1 {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.lot-urgency.p2 {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.lot-urgency.p3 {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.lot-details {
+    padding: var(--spacing-lg);
+}
+
+.lot-causes, .lot-risks, .lot-works, .lot-costs, .lot-dependencies {
+    margin-bottom: var(--spacing-lg);
+}
+
+.lot-causes h5, .lot-risks h5, .lot-works h5, .lot-costs h5, .lot-dependencies h5 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-sm);
+}
+
+.lot-causes ul, .lot-risks ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.lot-causes li, .lot-risks li {
+    padding: var(--spacing-xs) 0;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.lot-causes li:before {
+    content: "•";
+    color: var(--primary-color);
+    font-weight: bold;
+    margin-right: var(--spacing-sm);
+}
+
+.lot-risks li:before {
+    content: "⚠️";
+    margin-right: var(--spacing-sm);
+}
+
+.quantities {
+    display: flex;
+    gap: var(--spacing-md);
+    flex-wrap: wrap;
+    margin-top: var(--spacing-sm);
+}
+
+.quantities span {
+    background: var(--bg-tertiary);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--border-radius-sm);
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.cost-ranges {
+    display: flex;
+    gap: var(--spacing-sm);
+    flex-wrap: wrap;
+}
+
+.cost-range {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--border-radius-sm);
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.cost-range.low {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.cost-range.medium {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.cost-range.high {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.lot-info {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--spacing-md);
+    flex-wrap: wrap;
+    margin-top: var(--spacing-md);
+    padding-top: var(--spacing-md);
+    border-top: 1px solid var(--border-color);
+}
+
+.lot-info span {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+/* Detailed Cost Breakdown */
+.detailed-cost-breakdown-section {
+    margin-bottom: var(--spacing-xl);
+}
+
+.detailed-cost-breakdown-section h3 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-xl);
+    text-align: center;
+}
+
+.cost-breakdown-table {
+    background: var(--bg-secondary);
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+    margin-bottom: var(--spacing-lg);
+}
+
+.cost-breakdown-header {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    background: var(--primary-color);
+    color: var(--text-white);
+    font-weight: 600;
+}
+
+.cost-breakdown-header > div {
+    padding: var(--spacing-md);
+    text-align: center;
+}
+
+.cost-breakdown-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.cost-breakdown-row:last-child {
+    border-bottom: none;
+}
+
+.cost-breakdown-row > div {
+    padding: var(--spacing-md);
+    text-align: center;
+}
+
+.cost-category {
+    font-weight: 600;
+    color: var(--text-primary);
+    text-align: left !important;
+}
+
+.cost-basse {
+    color: #166534;
+    font-weight: 600;
+}
+
+.cost-mediane {
+    color: #92400e;
+    font-weight: 600;
+}
+
+.cost-haute {
+    color: #991b1b;
+    font-weight: 600;
+}
+
+.cost-parameters {
+    display: flex;
+    justify-content: center;
+    gap: var(--spacing-xl);
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+/* Detailed Planning */
+.detailed-planning-section {
+    margin-bottom: var(--spacing-xl);
+}
+
+.detailed-planning-section h3 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-xl);
+    text-align: center;
+}
+
+.phase-details {
+    margin-top: var(--spacing-md);
+}
+
+.phase-details p {
+    margin-bottom: var(--spacing-sm);
+    color: var(--text-primary);
+    font-size: 0.9rem;
+}
+
+/* Scenarios */
+.scenarios-section {
+    margin-bottom: var(--spacing-xl);
+}
+
+.scenarios-section h3 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-xl);
+    text-align: center;
+}
+
+.scenarios-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: var(--spacing-lg);
+}
+
+.scenario-card {
+    background: var(--bg-secondary);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-sm);
+    padding: var(--spacing-xl);
+    border: 1px solid var(--border-color);
+    transition: var(--transition-normal);
+}
+
+.scenario-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-md);
+}
+
+.scenario-card.eco {
+    border-left: 4px solid #10b981;
+}
+
+.scenario-card.standard {
+    border-left: 4px solid #3b82f6;
+}
+
+.scenario-card.premium {
+    border-left: 4px solid #8b5cf6;
+}
+
+.scenario-card h4 {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-md);
+}
+
+.scenario-description {
+    color: var(--text-secondary);
+    margin-bottom: var(--spacing-md);
+    line-height: 1.6;
+}
+
+.scenario-cost {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--primary-color);
+    text-align: center;
+    margin-bottom: var(--spacing-lg);
+    padding: var(--spacing-md);
+    background: var(--bg-tertiary);
+    border-radius: var(--border-radius);
+}
+
+.scenario-details {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-lg);
+    flex-wrap: wrap;
+}
+
+.scenario-details span {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+/* Questions Section */
+.questions-section {
+    margin-bottom: var(--spacing-xl);
+}
+
+.questions-section h3 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-md);
+    text-align: center;
+}
+
+.questions-section > p {
+    text-align: center;
+    color: var(--text-secondary);
+    margin-bottom: var(--spacing-xl);
+}
+
+.questions-list {
+    display: grid;
+    gap: var(--spacing-lg);
+}
+
+.question-item {
+    background: var(--bg-secondary);
+    border-radius: var(--border-radius);
+    padding: var(--spacing-lg);
+    border: 1px solid var(--border-color);
+}
+
+.question-item h4 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--primary-color);
+    margin-bottom: var(--spacing-md);
+}
+
+.question-text {
+    color: var(--text-primary);
+    font-size: 1rem;
+    margin-bottom: var(--spacing-md);
+    line-height: 1.6;
+}
+
+.question-details p {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-bottom: var(--spacing-xs);
+}
+
+/* Hypotheses Section */
+.hypotheses-section {
+    margin-bottom: var(--spacing-xl);
+}
+
+.hypotheses-section h3 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-md);
+    text-align: center;
+}
+
+.hypotheses-section > p {
+    text-align: center;
+    color: var(--text-secondary);
+    margin-bottom: var(--spacing-xl);
+}
+
+.hypotheses-list {
+    display: grid;
+    gap: var(--spacing-lg);
+}
+
+.hypothesis-item {
+    background: var(--bg-secondary);
+    border-radius: var(--border-radius);
+    padding: var(--spacing-lg);
+    border: 1px solid var(--border-color);
+    border-left: 4px solid #f59e0b;
+}
+
+.hypothesis-item h4 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #f59e0b;
+    margin-bottom: var(--spacing-md);
+}
+
+.hypothesis-text {
+    color: var(--text-primary);
+    font-size: 1rem;
+    margin-bottom: var(--spacing-md);
+    line-height: 1.6;
+}
+
+.hypothesis-details p {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-bottom: var(--spacing-xs);
+}
+
+/* Risks Section */
+.risks-section {
+    margin-bottom: var(--spacing-xl);
+}
+
+.risks-section h3 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-md);
+    text-align: center;
+}
+
+.risks-section > p {
+    text-align: center;
+    color: var(--text-secondary);
+    margin-bottom: var(--spacing-xl);
+}
+
+.risks-list {
+    display: grid;
+    gap: var(--spacing-lg);
+}
+
+.risk-item {
+    background: var(--bg-secondary);
+    border-radius: var(--border-radius);
+    padding: var(--spacing-lg);
+    border: 1px solid var(--border-color);
+    border-left: 4px solid #ef4444;
+}
+
+.risk-item h4 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #ef4444;
+    margin-bottom: var(--spacing-md);
+}
+
+.risk-text {
+    color: var(--text-primary);
+    font-size: 1rem;
+    margin-bottom: var(--spacing-md);
+    line-height: 1.6;
+}
+
+.risk-details p {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-bottom: var(--spacing-xs);
+}
+
+.probability {
+    font-weight: 600;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--border-radius-sm);
+    font-size: 0.8rem;
+}
+
+.probability.faible {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.probability.moyenne {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.probability.élevée {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+/* Responsive Design for Professional Sections */
+@media (max-width: 768px) {
+    .executive-summary-grid {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    }
+    
+    .lots-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .cost-breakdown-header,
+    .cost-breakdown-row {
+        grid-template-columns: 1fr;
+        text-align: left;
+    }
+    
+    .cost-breakdown-header > div,
+    .cost-breakdown-row > div {
+        text-align: left !important;
+    }
+    
+    .scenarios-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .scenario-details {
+        flex-direction: column;
+    }
+    
+    .cost-parameters {
+        flex-direction: column;
+        gap: var(--spacing-sm);
+    }
+    
+    .lot-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .lot-info {
+        flex-direction: column;
+    }
+    
+    .quantities {
+        flex-direction: column;
+    }
+    
+    .cost-ranges {
+        flex-direction: column;
+    }
+}
+

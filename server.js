@@ -261,7 +261,7 @@ class AnalysisService {
                 };
             });
 
-            const prompt = `Tu es un expert artisan en rénovation immobilière avec 30 ans d'expérience, spécialisé dans l'estimation de travaux. Tu as une expertise approfondie en maçonnerie, électricité, plomberie, menuiserie, peinture et finitions. Analyse ces images avec un œil professionnel et fournis une estimation détaillée et réaliste.
+            const prompt = `Tu es un expert en diagnostic immobilier et estimation de travaux, niveau bureau d'études techniques. Tu as 25 ans d'expérience en rénovation, expertise en thermique, structure, électricité, plomberie, et réglementation. Analyse ces images avec une méthodologie rigoureuse et fournis un diagnostic technique complet.
 
 PROFIL UTILISATEUR:
 ${JSON.stringify(userProfile, null, 2)}
@@ -269,78 +269,184 @@ ${JSON.stringify(userProfile, null, 2)}
 DESCRIPTION DU PROJET:
 ${description || 'Aucune description fournie'}
 
-INSTRUCTIONS D'ANALYSE:
-1. Examine chaque image en détail pour identifier :
-   - L'état des murs, sols, plafonds
-   - Les installations électriques et sanitaires
-   - Les menuiseries (portes, fenêtres)
-   - Les finitions existantes
-   - Les défauts et problèmes visibles
+MÉTHODOLOGIE D'ANALYSE TECHNIQUE:
 
-2. Estime avec précision :
-   - Les surfaces à traiter (murs, sols, plafonds)
-   - Les matériaux nécessaires
-   - La main d'œuvre requise
-   - Les contraintes techniques
+1. DIAGNOSTIC PAR LOTS TECHNIQUES :
+   - Structure (murs porteurs, planchers, fondations)
+   - Toiture (couverture, charpente, isolation)
+   - Isolation (murs, plafonds, planchers)
+   - Électricité (tableau, circuits, points lumineux)
+   - Plomberie (distribution, évacuation, équipements)
+   - Chauffage/Climatisation (générateur, distribution)
+   - Ventilation (VMC, entrées d'air)
+   - Menuiseries (portes, fenêtres, volets)
+   - Sols/Murs/Plafonds (revêtements, finitions)
+   - SDB/Cuisine (équipements, aménagements)
+   - Humidité (infiltrations, condensation, remontées)
+   - Accessibilité (handicap, normes PMR)
+   - Extérieurs (façades, terrasses, jardins)
 
-3. Fournis des conseils personnalisés basés sur :
-   - Le niveau de bricolage de l'utilisateur
-   - Le budget disponible
-   - Le délai souhaité
-   - Le type de projet
+2. ÉVALUATION DE L'ÉTAT :
+   Pour chaque lot : BON / MOYEN / DÉGRADÉ / CRITIQUE
+   - Causes probables identifiées
+   - Risques associés (sécurité, confort, performance)
+   - Urgence d'intervention (P0=urgent, P1=important, P2=confort, P3=esthétique)
 
-FORMAT JSON DÉTAILLÉ:
+3. CHIFFRAGE DÉTAILLÉ :
+   - Matériaux (quantités + prix unitaires)
+   - Main-d'œuvre (temps + taux horaires)
+   - Évacuation/déchets (volume + coût)
+   - Marge/aléas (pourcentage selon incertitude)
+   - 3 fourchettes : BASSE / MÉDIANE / HAUTE
+   - TVA 20% incluse
+   - Multiplicateur régional (défaut 1.0)
+
+4. PLANIFICATION :
+   - Durée estimée par lot
+   - Dépendances entre lots
+   - Impact sur occupation
+   - Phases de travaux
+
+5. SCÉNARIOS :
+   - ÉCO : Optimisation coût, matériaux basiques
+   - STANDARD : Équilibre coût/performance
+   - PREMIUM : Matériaux haut de gamme, finitions soignées
+
+FORMAT JSON PROFESSIONNEL:
 {
-  "analyse_globale": {
-    "surface_totale": "XX-XX m² (estimation précise)",
-    "duree_estimee": "X-X semaines (avec marge)",
-    "cout_total_estime": "XXXX-XXXX € (fourchette réaliste)",
-    "complexite": "facile/moyen/complexe/très complexe",
-    "priorites_travaux": ["Liste des travaux prioritaires"],
-    "risques_identifies": ["Risques techniques identifiés"],
-    "permis_necessaires": ["Permis ou autorisations requises"]
+  "resume_executif": {
+    "surface_totale": "XX-XX m²",
+    "complexite_globale": "faible/moyenne/élevée",
+    "duree_totale": "X-X mois",
+    "cout_total": {
+      "basse": "XXXXX €",
+      "mediane": "XXXXX €", 
+      "haute": "XXXXX €"
+    },
+    "priorites_urgentes": ["Liste P0 et P1"],
+    "risques_majeurs": ["Risques sécurité/structuraux"]
   },
-  "pieces": [
+  "diagnostic_lots": [
     {
-      "nom": "Nom précis de la pièce",
-      "surface": "XX-XX m²",
-      "etat_general": "excellent/bon/moyen/mauvais/critique",
-      "travaux_necessaires": "Description détaillée des travaux par corps de métier",
-      "cout_estime": "XXXX-XXXX €",
-      "duree_estimee": "X-X semaines",
-      "materiaux_principaux": ["Liste des matériaux nécessaires"],
-      "corps_metier": ["Maçonnerie", "Électricité", "Plomberie", "Menuiserie", "Peinture"],
-      "contraintes_techniques": ["Contraintes spécifiques identifiées"],
-      "conseils_specifiques": "Conseils adaptés à cette pièce"
+      "lot": "Nom du lot technique",
+      "etat": "BON/MOYEN/DÉGRADÉ/CRITIQUE",
+      "causes_probables": ["Causes identifiées"],
+      "risques": ["Risques associés"],
+      "urgence": "P0/P1/P2/P3",
+      "travaux_recommandes": {
+        "description": "Description précise",
+        "quantites": {
+          "surface": "XX m²",
+          "longueur": "XX ml", 
+          "unites": "XX unités"
+        },
+        "severite": "P0/P1/P2/P3"
+      },
+      "cout_estime": {
+        "basse": "XXXX €",
+        "mediane": "XXXX €",
+        "haute": "XXXX €"
+      },
+      "duree": "X-X semaines",
+      "dependances": ["Lots requis avant"],
+      "impact_occupation": "Aucun/Partiel/Total"
     }
   ],
   "decomposition_couts": {
-    "materiaux": "XXXX-XXXX €",
-    "main_oeuvre": "XXXX-XXXX €",
-    "outillage": "XXX-XXX €",
-    "dechets": "XXX-XXX €",
-    "imprevus": "XXX-XXX €"
+    "materiaux": {
+      "basse": "XXXX €",
+      "mediane": "XXXX €", 
+      "haute": "XXXX €"
+    },
+    "main_oeuvre": {
+      "basse": "XXXX €",
+      "mediane": "XXXX €",
+      "haute": "XXXX €"
+    },
+    "evacuation_dechets": {
+      "basse": "XXX €",
+      "mediane": "XXX €",
+      "haute": "XXX €"
+    },
+    "marge_aleas": {
+      "basse": "XXX €",
+      "mediane": "XXX €", 
+      "haute": "XXX €"
+    },
+    "tva": "20%",
+    "multiplicateur_regional": 1.0
   },
   "planning_travaux": {
-    "phase_1": "Description et durée",
-    "phase_2": "Description et durée",
-    "phase_3": "Description et durée"
+    "phase_1": {
+      "nom": "Nom de la phase",
+      "lots": ["Lots inclus"],
+      "duree": "X-X semaines",
+      "dependances": ["Phases requises"],
+      "impact_occupation": "Aucun/Partiel/Total"
+    }
   },
-  "conseils": "Conseils personnalisés détaillés basés sur le profil utilisateur et les contraintes identifiées",
-  "alternatives": [
-    {
-      "option": "Option économique",
-      "description": "Description de l'option",
-      "cout": "XXXX-XXXX €",
+  "scenarios": {
+    "eco": {
+      "nom": "Scénario Économique",
+      "description": "Optimisation coût",
+      "cout_total": "XXXXX €",
       "avantages": ["Avantages"],
-      "inconvenients": ["Inconvénients"]
+      "inconvenients": ["Inconvénients"],
+      "performance_energetique": "Classe X",
+      "duree": "X-X mois"
+    },
+    "standard": {
+      "nom": "Scénario Standard", 
+      "description": "Équilibre coût/performance",
+      "cout_total": "XXXXX €",
+      "avantages": ["Avantages"],
+      "inconvenients": ["Inconvénients"],
+      "performance_energetique": "Classe X",
+      "duree": "X-X mois"
+    },
+    "premium": {
+      "nom": "Scénario Premium",
+      "description": "Haut de gamme",
+      "cout_total": "XXXXX €", 
+      "avantages": ["Avantages"],
+      "inconvenients": ["Inconvénients"],
+      "performance_energetique": "Classe X",
+      "duree": "X-X mois"
+    }
+  },
+  "questions_complementaires": [
+    {
+      "question": "Question précise",
+      "objectif": "Pourquoi cette info est nécessaire",
+      "impact_estimation": "Impact sur le chiffrage"
     }
   ],
-  "recommandations_securite": ["Recommandations de sécurité importantes"],
-  "garanties_necessaires": ["Garanties à prévoir"]
+  "hypotheses_prises": [
+    {
+      "hypothese": "Hypothèse prise",
+      "consequence": "Impact sur estimation",
+      "marge_aleas": "Pourcentage ajouté"
+    }
+  ],
+  "risques_et_inconnues": [
+    {
+      "risque": "Risque identifié",
+      "impact_potentiel": "Conséquence possible",
+      "probabilite": "Faible/Moyenne/Élevée",
+      "mitigation": "Mesure recommandée"
+    }
+  ]
 }
 
-IMPORTANT: Sois très précis dans tes estimations. Utilise des fourchettes réalistes. Détaille chaque corps de métier. Donne des conseils pratiques et personnalisés. Réponds UNIQUEMENT avec le JSON valide.`;
+RÈGLES STRICTES :
+- Ne JAMAIS inventer d'informations manquantes
+- Indiquer clairement les hypothèses prises
+- Majorer les aléas si incertitude forte (+30% minimum)
+- Utiliser des fourchettes réalistes
+- Détail technique précis pour chaque lot
+- Questions ciblées pour affiner le diagnostic
+
+Réponds UNIQUEMENT avec le JSON valide.`;
 
             console.log('🤖 Envoi de la requête à OpenAI...');
             
