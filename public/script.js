@@ -360,7 +360,8 @@ const UploadManager = {
             });
 
             if (!response.ok) {
-                throw new Error(`Erreur ${response.status}: ${response.statusText}`);
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.error || `Erreur ${response.status}: ${response.statusText}`);
             }
 
             const result = await response.json();
@@ -375,7 +376,7 @@ const UploadManager = {
 
         } catch (error) {
             console.error('Erreur lors de l\'analyse:', error);
-            Utils.showNotification('Erreur lors de l\'analyse des images', 'error');
+            Utils.showNotification(`Erreur lors de l'analyse: ${error.message}`, 'error');
             
             setTimeout(() => {
                 NavigationManager.goToStep('upload');
@@ -425,48 +426,65 @@ const ResultsManager = {
 
     displayResults: (results) => {
         const container = document.getElementById('resultsContainer');
-        if (!container) return;
+        if (!container) {
+            console.error('Container des résultats non trouvé');
+            return;
+        }
 
-        const analysis = results.analysis;
-        
-        container.innerHTML = `
-            <div class="results-header">
-                <h2>🎯 Analyse de votre projet</h2>
-                <p>Voici votre estimation personnalisée basée sur ${results.images.length} image(s)</p>
-            </div>
+        try {
+            const analysis = results.analysis || results;
+            
+            container.innerHTML = `
+                <div class="results-header">
+                    <h2>🎯 Analyse de votre projet</h2>
+                    <p>Voici votre estimation personnalisée basée sur ${results.images?.length || 0} image(s)</p>
+                </div>
 
-            <div class="results-summary">
-                <div class="summary-grid">
-                    <div class="summary-card">
-                        <i class="fas fa-ruler-combined"></i>
-                        <h3>Surface totale</h3>
-                        <div class="summary-value">${analysis.analyse_globale?.surface_totale || 'N/A'}</div>
-                    </div>
-                    <div class="summary-card">
-                        <i class="fas fa-clock"></i>
-                        <h3>Durée estimée</h3>
-                        <div class="summary-value">${analysis.analyse_globale?.duree_estimee || 'N/A'}</div>
-                    </div>
-                    <div class="summary-card">
-                        <i class="fas fa-euro-sign"></i>
-                        <h3>Coût total</h3>
-                        <div class="summary-value">${analysis.analyse_globale?.cout_total_estime || 'N/A'}</div>
-                    </div>
-                    <div class="summary-card">
-                        <i class="fas fa-tools"></i>
-                        <h3>Complexité</h3>
-                        <div class="summary-value">${analysis.analyse_globale?.complexite || 'N/A'}</div>
+                <div class="results-summary">
+                    <div class="summary-grid">
+                        <div class="summary-card">
+                            <i class="fas fa-ruler-combined"></i>
+                            <h3>Surface totale</h3>
+                            <div class="summary-value">${analysis.analyse_globale?.surface_totale || 'N/A'}</div>
+                        </div>
+                        <div class="summary-card">
+                            <i class="fas fa-clock"></i>
+                            <h3>Durée estimée</h3>
+                            <div class="summary-value">${analysis.analyse_globale?.duree_estimee || 'N/A'}</div>
+                        </div>
+                        <div class="summary-card">
+                            <i class="fas fa-euro-sign"></i>
+                            <h3>Coût total</h3>
+                            <div class="summary-value">${analysis.analyse_globale?.cout_total_estime || 'N/A'}</div>
+                        </div>
+                        <div class="summary-card">
+                            <i class="fas fa-tools"></i>
+                            <h3>Complexité</h3>
+                            <div class="summary-value">${analysis.analyse_globale?.complexite || 'N/A'}</div>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            ${analysis.pieces ? ResultsManager.renderPieces(analysis.pieces) : ''}
-            
-            ${analysis.conseils ? ResultsManager.renderAdvice(analysis.conseils) : ''}
-        `;
+                ${analysis.pieces ? ResultsManager.renderPieces(analysis.pieces) : ''}
+                
+                ${analysis.conseils ? ResultsManager.renderAdvice(analysis.conseils) : ''}
+            `;
+        } catch (error) {
+            console.error('Erreur lors de l\'affichage des résultats:', error);
+            container.innerHTML = `
+                <div class="results-header">
+                    <h2>❌ Erreur d'affichage</h2>
+                    <p>Impossible d'afficher les résultats. Veuillez réessayer.</p>
+                </div>
+            `;
+        }
     },
 
     renderPieces: (pieces) => {
+        if (!Array.isArray(pieces) || pieces.length === 0) {
+            return '';
+        }
+
         return `
             <div class="pieces-section">
                 <h3>📋 Détail par pièce</h3>
@@ -474,16 +492,16 @@ const ResultsManager = {
                     ${pieces.map(piece => `
                         <div class="piece-card">
                             <div class="piece-header">
-                                <h4>${piece.nom}</h4>
-                                <span class="piece-status ${piece.etat_general}">${piece.etat_general}</span>
+                                <h4>${piece.nom || 'Pièce non nommée'}</h4>
+                                <span class="piece-status ${piece.etat_general || 'moyen'}">${piece.etat_general || 'moyen'}</span>
                             </div>
                             <div class="piece-details">
                                 <div class="piece-info">
-                                    <span><strong>Surface:</strong> ${piece.surface}</span>
-                                    <span><strong>Coût estimé:</strong> ${piece.cout_estime}</span>
+                                    <span><strong>Surface:</strong> ${piece.surface || 'N/A'}</span>
+                                    <span><strong>Coût estimé:</strong> ${piece.cout_estime || 'N/A'}</span>
                                 </div>
                                 <div class="piece-description">
-                                    <p>${piece.travaux_necessaires}</p>
+                                    <p>${piece.travaux_necessaires || 'Aucune information disponible'}</p>
                                 </div>
                             </div>
                         </div>
@@ -494,6 +512,10 @@ const ResultsManager = {
     },
 
     renderAdvice: (conseils) => {
+        if (!conseils) {
+            return '';
+        }
+
         return `
             <div class="advice-section">
                 <h3>💡 Conseils personnalisés</h3>
@@ -513,7 +535,8 @@ const ResultsManager = {
         
         // Réinitialiser les formulaires
         document.getElementById('questionnaireForm')?.reset();
-        document.getElementById('description').value = '';
+        const description = document.getElementById('description');
+        if (description) description.value = '';
         
         // Retourner au questionnaire
         NavigationManager.goToStep('questionnaire');
