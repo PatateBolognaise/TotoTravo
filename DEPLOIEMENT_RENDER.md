@@ -128,3 +128,5 @@ curl https://tototravo.onrender.com/api/test
 **L'IA fournit une analyse complète avec métrage, prix des meubles, matériaux spécifiques, produits concrets, et recommandations personnalisées !** 🚀
 
 
+
+

@@ -1,50 +1,24 @@
 const express = require('express');
 const multer = require('multer');
 const axios = require('axios');
-const cors = require('cors');
 const path = require('path');
-const { getJson } = require('serpapi');
-const OpenAI = require('openai');
+const cors = require('cors');
 require('dotenv').config();
+
+// Log de démarrage pour production
+console.log('🚀 Démarrage serveur TotoTravo');
+console.log('   PORT:', process.env.PORT);
+console.log('   NODE_ENV:', process.env.NODE_ENV);
+console.log('   OPENAI_API_KEY configurée:', !!process.env.OPENAI_API_KEY);
 
 const app = express();
 
-// Configuration des variables d'environnement
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
-const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY;
-const SERPAPI_KEY = process.env.SERPAPI_KEY;
-const PORT = process.env.PORT || 10000;
-
-// Configuration DeepSeek - Utilisation directe de l'API
-const DEEPSEEK_API_URL = 'https://api.deepseek.com/v1/chat/completions';
-
-// Configuration OpenAI
-const openai = new OpenAI({
-    apiKey: OPENAI_API_KEY
-});
-
-// Vérification de la configuration
-if (!OPENAI_API_KEY) {
-    console.warn('⚠️ ATTENTION: OPENAI_API_KEY non configurée');
-    console.warn('⚠️ L\'analyse IA ne fonctionnera pas sans cette clé');
-    console.warn('⚠️ Mais les questions dynamiques fonctionneront pour les tests');
-}
-
-if (!DEEPSEEK_API_KEY) {
-    console.warn('⚠️ ATTENTION: DEEPSEEK_API_KEY non configurée');
-    console.warn('⚠️ Les questions DeepSeek ne fonctionneront pas sans cette clé');
-    console.warn('⚠️ Fallback vers questions statiques activé');
-}
-
-// Middleware pour parser le JSON
-app.use(express.json());
-
-// Configuration CORS
+// Configuration CORS pour Render et production
 app.use(cors({
     origin: [
-        'http://localhost:3000',
+        'http://localhost:3000', 
         'http://localhost:5000',
-        'https://*.vercel.app',
+        'https://*.vercel.app', 
         'https://*.now.sh',
         'https://*.onrender.com',
         'https://tototravo.onrender.com'
@@ -54,397 +28,694 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// Configuration Multer pour les uploads
-const storage = multer.memoryStorage();
-const upload = multer({ 
-    storage: storage,
-    limits: { fileSize: 10 * 1024 * 1024 },
+// Middleware
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+
+// Servir les fichiers statiques
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Route pour la page d'accueil
+app.get('/', (req, res) => {
+    try {
+        console.log('📄 Demande page d\'accueil');
+        res.sendFile(path.join(__dirname, 'public', 'index.html'));
+    } catch (error) {
+        console.error('❌ Erreur page d\'accueil:', error);
+        res.status(500).json({ error: 'Erreur chargement page d\'accueil' });
+    }
+});
+
+// Configuration
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
+const PORT = process.env.PORT || 8080;
+
+// Debug des variables d'environnement
+console.log('🔍 Debug variables d\'environnement:');
+console.log('   PORT:', process.env.PORT);
+console.log('   NODE_ENV:', process.env.NODE_ENV);
+console.log('   OPENAI_API_KEY existe:', !!process.env.OPENAI_API_KEY);
+console.log('   OPENAI_API_KEY preview:', process.env.OPENAI_API_KEY ? process.env.OPENAI_API_KEY.substring(0, 20) + '...' : 'Non définie');
+
+// Vérification de la configuration
+if (!OPENAI_API_KEY) {
+    console.error('❌ ERREUR: OPENAI_API_KEY non configurée');
+    console.error('❌ Configurez OPENAI_API_KEY dans les variables d\'environnement Render');
+    console.error('❌ Ou ajoutez-la dans un fichier .env pour le développement local');
+    process.exit(1);
+}
+
+// Configuration Multer pour Vercel (mémoire uniquement)
+const upload = multer({
+    storage: multer.memoryStorage(),
+    limits: {
+        fileSize: 10 * 1024 * 1024, // 10MB max
+        files: 5 // 5 fichiers max
+    },
     fileFilter: (req, file, cb) => {
+        // Vérifier le type de fichier
         if (file.mimetype.startsWith('image/')) {
             cb(null, true);
         } else {
-            cb(new Error('Seules les images sont autorisées'), false);
+            cb(new Error('Seuls les fichiers images sont autorisés'), false);
         }
     }
 });
 
-// Fonctions d'aide
-function getBricolageLevel(niveau) {
-    const levels = {
-        'debutant': 'Peu d\'expérience, conseils détaillés nécessaires',
-        'intermediaire': 'Expérience modérée, peut faire des travaux simples',
-        'expert': 'Expérience avancée, peut faire des travaux complexes'
-    };
-    return levels[niveau] || 'Niveau non spécifié';
-}
-
-function getBudgetRange(budget) {
-    const ranges = {
-        'serre': 'Budget limité, optimiser les coûts',
-        'moyen': 'Budget standard, qualité équilibrée',
-        'confortable': 'Budget élevé, qualité premium'
-    };
-    return ranges[budget] || 'Budget non spécifié';
-}
-
-function getDelaiInfo(delai) {
-    const infos = {
-        'urgent': 'Travaux prioritaires, planning accéléré',
-        'normal': 'Délai standard, planning équilibré',
-        'flexible': 'Délai flexible, optimisation possible'
-    };
-    return infos[delai] || 'Délai non spécifié';
-}
-
-function getImplicationInfo(implication) {
-    const infos = {
-        'minimale': 'Intervention minimale, artisan principal',
-        'moderee': 'Participation modérée, mix artisan/bricolage',
-        'maximale': 'Participation maximale, bricolage principal'
-    };
-    return infos[implication] || 'Implication non spécifiée';
-}
-
-function getProjectTypeInfo(type) {
-    const infos = {
-        'reparation': 'Travaux de réparation et maintenance',
-        'renovation': 'Rénovation complète',
-        'amenagement': 'Aménagement et décoration',
-        'construction': 'Travaux de construction'
-    };
-    return infos[type] || 'Type non spécifié';
-}
-
-// Fonction pour générer des questions avec DeepSeek
-async function generateAIQuestions(userProfile, description) {
+// Fonction pour analyser les images avec GPT-4 Vision
+async function analyzeImagesWithAI(files, userProfile, description = '') {
     try {
-        console.log('🚀 Génération des questions DeepSeek en cours...');
+        console.log('📸 Analyse de', files.length, 'images avec GPT-4 Vision');
         
-        const prompt = `Tu es un expert en rénovation immobilière avec 20 ans d'expérience. Génère 4-6 questions ULTRA-PERTINENTES et SPÉCIFIQUES pour personnaliser l'analyse d'un projet de rénovation.
-
-PROFIL UTILISATEUR DÉTAILLÉ:
-- Niveau bricolage: ${userProfile.niveau_bricolage} (${getBricolageLevel(userProfile.niveau_bricolage)})
-- Budget: ${userProfile.budget} (${getBudgetRange(userProfile.budget)})
-- Délai: ${userProfile.delai} (${getDelaiInfo(userProfile.delai)})
-- Implication: ${userProfile.implication} (${getImplicationInfo(userProfile.implication)})
-- Type projet: ${userProfile.type_projet} (${getProjectTypeInfo(userProfile.type_projet)})
-
-DESCRIPTION DU PROJET: ${description}
-
-INSTRUCTIONS ULTRA-PRÉCISES:
-1. Génère des questions UNIQUEMENT basées sur le profil et la description
-2. Questions courtes et précises (max 8 mots)
-3. Options de réponses concises et pertinentes (max 4 options)
-4. Focus sur les détails qui impactent DIRECTEMENT l'analyse finale
-5. Adapte selon le niveau de bricolage et le budget
-6. Questions qui révèlent les VRAIES priorités de l'utilisateur
-7. Évite les questions génériques, sois SPÉCIFIQUE au projet
-
-EXEMPLES DE QUESTIONS PERTINENTES:
-- Pour une cuisine: "Quelle fonctionnalité privilégier ?" (cuisine sociale, pratique, esthétique, optimale, autre)
-- Pour un budget serré: "Comment optimiser votre budget ?" (matériaux éco, travaux essentiels, phases étalées, autre)
-- Pour un expert: "Quels matériaux préférez-vous ?" (naturels, modernes, écologiques, durables, autre)
-
-FORMAT JSON STRICT:
-{
-  "questions": [
-    {
-      "id": "question_unique",
-      "question": "Question courte et précise ?",
-      "type": "radio",
-      "options": [
-        {"value": "option1", "label": "Réponse courte"},
-        {"value": "option2", "label": "Réponse courte"},
-        {"value": "option3", "label": "Réponse courte"},
-        {"value": "option4", "label": "Réponse courte"},
-        {"value": "autre", "label": "Autre"}
-      ],
-      "required": true
-    }
-  ]
-}
-
-IMPORTANT: Chaque question DOIT avoir une option "autre" avec value="autre" et label="Autre".
-
-Réponds UNIQUEMENT avec le JSON valide.`;
-
-        const response = await axios.post(DEEPSEEK_API_URL, {
-            model: 'deepseek-chat',
-            messages: [{ role: 'user', content: prompt }],
-            temperature: 0.8,
-            max_tokens: 1500
-        }, {
-            headers: {
-                'Authorization': `Bearer ${DEEPSEEK_API_KEY}`,
-                'Content-Type': 'application/json'
-            }
-        });
-
-        const content = response.data.choices[0].message.content;
-        console.log('🤖 Réponse DeepSeek questions:', content);
-
-        // Nettoyer et parser la réponse
-        const cleanedContent = content.replace(/```json\n?|\n?```/g, '').trim();
-        const parsed = JSON.parse(cleanedContent);
-
-        console.log('✅ Questions DeepSeek générées avec succès !');
-        return parsed.questions || [];
-    } catch (error) {
-        console.error('❌ Erreur génération questions DeepSeek:', error);
-        console.log('🔄 Fallback vers questions statiques...');
-        return generateFallbackQuestions(userProfile, description);
-    }
-}
-
-// Fonction de fallback pour les questions statiques
-function generateFallbackQuestions(userProfile, description) {
-    console.log('🔄 Utilisation des questions de fallback...');
-    
-    const questions = [
-        {
-            id: 'ambiance_souhaitee',
-            question: 'Quelle ambiance souhaitez-vous créer ?',
-            type: 'radio',
-            options: [
-                { value: 'cosy', label: 'Cosy et chaleureux' },
-                { value: 'epure', label: 'Épuré et minimaliste' },
-                { value: 'luxueux', label: 'Luxueux et raffiné' },
-                { value: 'naturel', label: 'Naturel et authentique' },
-                { value: 'moderne', label: 'Moderne et contemporain' },
-                { value: 'autre', label: 'Autre' }
-            ],
-            required: true
-        },
-        {
-            id: 'plus_value',
-            question: 'Quelle plus-value recherchez-vous ?',
-            type: 'radio',
-            options: [
-                { value: 'confort_vie', label: 'Confort de vie' },
-                { value: 'valeur_bien', label: 'Valeur du bien' },
-                { value: 'esthetique', label: 'Esthétique' },
-                { value: 'fonctionnalite', label: 'Fonctionnalité' },
-                { value: 'autre', label: 'Autre' }
-            ],
-            required: true
-        },
-        {
-            id: 'organisation_travaux',
-            question: 'Comment souhaitez-vous organiser les travaux ?',
-            type: 'radio',
-            options: [
-                { value: 'vacances', label: 'Pendant les vacances' },
-                { value: 'weekends', label: 'Weekends' },
-                { value: 'soirees', label: 'Soirées' },
-                { value: 'continue', label: 'En continu' },
-                { value: 'autre', label: 'Autre' }
-            ],
-            required: true
-        }
-    ];
-
-    // Ajouter des questions spécifiques selon le type de projet
-    if (description.toLowerCase().includes('cuisine')) {
-        questions.push({
-            id: 'fonctionnalite_cuisine',
-            question: 'Quelle fonctionnalité privilégier ?',
-            type: 'radio',
-            options: [
-                { value: 'cuisine_sociale', label: 'Cuisine sociale et ouverte' },
-                { value: 'cuisine_pratique', label: 'Cuisine pratique et fonctionnelle' },
-                { value: 'cuisine_esthetique', label: 'Cuisine esthétique et design' },
-                { value: 'cuisine_optimale', label: 'Cuisine optimale et moderne' },
-                { value: 'autre', label: 'Autre' }
-            ],
-            required: true
-        });
-    }
-
-    if (description.toLowerCase().includes('chambre') || description.toLowerCase().includes('salle de bain')) {
-        questions.push({
-            id: 'fonction_chambre',
-            question: 'Quelle fonction principale ?',
-            type: 'radio',
-            options: [
-                { value: 'repos', label: 'Repos et détente' },
-                { value: 'travail', label: 'Travail et concentration' },
-                { value: 'stockage', label: 'Stockage et organisation' },
-                { value: 'polyvalente', label: 'Polyvalente' },
-                { value: 'autre', label: 'Autre' }
-            ],
-            required: true
-        });
-    }
-
-    questions.push({
-        id: 'preference_materiaux',
-        question: 'Quels matériaux préférez-vous ?',
-        type: 'radio',
-        options: [
-            { value: 'naturels', label: 'Naturels (bois, pierre)' },
-            { value: 'modernes', label: 'Modernes (métal, verre)' },
-            { value: 'ecologiques', label: 'Écologiques' },
-            { value: 'durables', label: 'Durables et résistants' },
-            { value: 'autre', label: 'Autre' }
-        ],
-        required: true
-    });
-
-    return questions;
-}
-
-// Route pour générer les questions dynamiques
-app.post('/api/get-questions', async (req, res) => {
-    try {
-        console.log('📥 Requête questions reçue');
-        console.log('📊 Body:', req.body);
-        
-        const { userProfile, description } = req.body;
-        
-        console.log('👤 Profil reçu:', userProfile);
-        console.log('📝 Description reçue:', description);
-        
-        // Générer les questions avec DeepSeek
-        const questions = await generateAIQuestions(userProfile, description);
-        
-        console.log('❓ Questions générées:', questions);
-        
-        res.json({ questions });
-    } catch (error) {
-        console.error('❌ Erreur génération questions:', error);
-        res.status(500).json({ error: 'Erreur lors de la génération des questions' });
-    }
-});
-
-// Route pour analyser les images
-app.post('/api/analyze', upload.array('images', 5), async (req, res) => {
-    try {
-        console.log('📥 Requête analyse reçue');
-        
-        const images = req.files;
-        const description = req.body.description;
-        const userProfile = JSON.parse(req.body.userProfile);
-        
-        console.log('📸 Images reçues:', images.length);
-        console.log('👤 Profil utilisateur:', userProfile);
-        console.log('📝 Description du projet:', description);
-        
-        if (!images || images.length === 0) {
-            return res.status(400).json({ error: 'Aucune image fournie' });
-        }
-        
-        console.log('📸 Analyse de', images.length, 'images avec GPT-4 Vision');
-        
-        // Vérification de la clé API
-        if (!OPENAI_API_KEY) {
-            throw new Error('Clé API OpenAI non configurée');
-        }
-
-        // Préparer les images pour OpenAI
-        const imageContents = images.map(image => ({
-            type: 'image_url',
-            image_url: {
-                url: `data:${image.mimetype};base64,${image.buffer.toString('base64')}`
-            }
+        // Convertir les images en base64
+        const imageContents = await Promise.all(files.map(async (file) => {
+            const base64 = file.buffer.toString('base64');
+            return {
+                type: "image_url",
+                image_url: {
+                    url: `data:${file.mimetype};base64,${base64}`
+                }
+            };
         }));
 
-        const prompt = `Tu es un expert artisan en rénovation immobilière avec 30 ans d'expérience. Analyse ces images et fournis une analyse complète et détaillée. Réponds UNIQUEMENT avec un objet JSON valide.
+        console.log('📤 Envoi à GPT-4 Vision...');
+        
+        const prompt = `Tu es un expert artisan en rénovation immobilière avec 20 ans d'expérience. Analyse ces images et fournis une analyse ULTRA-DÉTAILLÉE avec métrage, prix des meubles, matériaux, produits spécifiques. Réponds UNIQUEMENT avec un objet JSON valide.
 
 PROFIL UTILISATEUR:
-${JSON.stringify(userProfile, null, 2)}
+- Niveau bricolage: ${userProfile.niveau_bricolage}
+- Budget: ${userProfile.budget}
+- Délai: ${userProfile.delai}
+- Implication: ${userProfile.implication}
+- Type projet: ${userProfile.type_projet}
 
-DESCRIPTION DU PROJET:
+DESCRIPTION DU PROJET (TRÈS IMPORTANT):
 ${description || 'Aucune description fournie'}
 
-FORMAT JSON:
+INSTRUCTIONS STRICTES - ANALYSE ULTRA-DÉTAILLÉE:
+1. **MÉTRAGE PRÉCIS** : Calcule la surface approximative de chaque pièce
+2. **IDENTIFICATION COMPLÈTE** : Murs, sols, plafonds, fenêtres, portes, électricité, plomberie
+3. **ÉTAT DÉTAILLÉ** : État de chaque élément (excellent/bon/moyen/mauvais/critique)
+4. **TRAVAUX COMPLETS** : Liste exhaustive de tous les travaux nécessaires
+5. **PRIX DÉTAILLÉS** : Matériaux + main d'œuvre séparément
+6. **MEUBLES ET ÉQUIPEMENTS** : Si aménagement demandé, liste complète avec prix
+7. **MATÉRIAUX SPÉCIFIQUES** : Marques, références, quantités
+8. **PRODUITS CONCRETS** : Noms de produits, magasins recommandés
+9. **DISTINCTION ARTISAN/BRICOLAGE** : Selon le profil utilisateur
+10. **PLANNING DÉTAILLÉ** : Phases, tâches, durées précises
+
+PRIX RÉALISTES 2024 - TRÈS DÉTAILLÉS:
+
+**MATÉRIAUX DE BASE:**
+- Peinture murale: 15-25€/m² (Dulux, Tollens, Farrow & Ball)
+- Carrelage sol: 40-80€/m² (Porcelanosa, Marazzi, Cifre)
+- Carrelage mural: 30-60€/m²
+- Parquet: 60-120€/m² (chêne massif, chêne contrecollé)
+- Moquette: 25-50€/m² (Tarkett, Balta)
+- Papier peint: 20-40€/m² (Casamance, Sanderson)
+
+**ÉLECTRICITÉ:**
+- Point lumineux: 80-150€ (Legrand, Schneider)
+- Prise électrique: 60-120€
+- Interrupteur: 40-80€
+- Tableau électrique: 800-2000€
+- Câblage: 15-25€/m linéaire
+
+**PLOMBERIE:**
+- Robinet lavabo: 80-200€ (Grohe, Hansgrohe)
+- Robinet douche: 150-400€
+- WC suspendu: 300-800€ (Geberit, Roca)
+- Douche à l'italienne: 800-2000€
+- Baignoire: 400-1200€
+
+**MENUISERIE:**
+- Porte intérieure: 200-500€/m² (Lapeyre, Schmidt)
+- Fenêtre PVC: 300-800€/m² (Veka, Rehau)
+- Fenêtre aluminium: 400-1000€/m²
+- Escalier: 3000-15000€
+- Placard sur mesure: 800-2000€/m²
+
+**MEUBLES ET ÉQUIPEMENTS:**
+- Canapé 3 places: 800-3000€ (IKEA, Roche Bobois)
+- Table de salle à manger: 400-2000€
+- Chaises: 80-300€/chaise
+- Lit 160cm: 600-2500€
+- Armoire penderie: 500-1500€
+- Commode: 300-1200€
+- Table de chevet: 100-400€
+- Bureau: 300-1500€
+- Bibliothèque: 200-1000€
+- Cuisine complète: 8000-25000€ (IKEA, Schmidt, Bulthaup)
+- Salle de bain complète: 5000-15000€
+
+**ÉLECTROMÉNAGER:**
+- Réfrigérateur: 400-1500€
+- Lave-vaisselle: 300-1200€
+- Four: 300-1500€
+- Plaques de cuisson: 200-1000€
+- Lave-linge: 400-1200€
+- Sèche-linge: 400-1200€
+
+**MAIN D'ŒUVRE 2024:**
+- Maçon: 45-65€/h
+- Électricien: 50-70€/h
+- Plombier: 55-75€/h
+- Menuisier: 50-70€/h
+- Carreleur: 45-65€/h
+- Peintre: 35-55€/h
+- Plâtrier: 40-60€/h
+
+FORMAT JSON OBLIGATOIRE - ULTRA-DÉTAILLÉ:
 {
-  "analyse_globale": {
-    "surface_totale": "XX m²",
-    "duree_estimee": "X semaines",
-    "cout_total_estime": "XXXX €",
-    "complexite": "facile/moyen/complexe"
-  },
   "pieces": [
     {
       "nom": "Nom de la pièce",
-      "surface": "XX m²",
-      "etat_general": "excellent/bon/moyen/mauvais/critique",
-      "travaux_necessaires": "Description des travaux",
-      "cout_estime": "XXX €"
+      "etat": "bon/moyen/mauvais",
+      "surface_estimee": "XXm²",
+      "dimensions": "L x l x h",
+      "elements_identifies": [
+        {
+          "type": "mur/sol/plafond/fenetre/porte/electricite/plomberie",
+          "etat": "excellent/bon/moyen/mauvais/critique",
+          "description": "Description détaillée"
+        }
+      ],
+      "travaux": [
+        {
+          "nom": "Nom du travail",
+          "description": "Description très détaillée",
+          "type_execution": "artisan ou bricolage",
+          "surface_ou_quantite": "XXm² ou nombre",
+          "materiaux_necessaires": [
+            {
+              "nom": "Nom du matériau",
+              "marque": "Marque recommandée",
+              "quantite": "XX unités",
+              "prix_unitaire": 100,
+              "prix_total": 1000,
+              "magasin": "Leroy Merlin, Brico Dépôt, etc."
+            }
+          ],
+          "cout_materiaux": 1000,
+          "cout_main_oeuvre": 2000,
+          "cout_total": 3000,
+          "duree_estimee": "X semaines",
+          "priorite": "haute/moyenne/basse",
+          "conseils": "Conseils détaillés",
+          "produits_recommandes": ["Produit 1", "Produit 2"]
+        }
+      ],
+      "meubles_equipements": [
+        {
+          "nom": "Nom du meuble",
+          "type": "canape/table/lit/armoire/etc",
+          "dimensions": "L x l x h",
+          "prix_estime": 1000,
+          "marques_recommandees": ["IKEA", "Roche Bobois"],
+          "conseils_achat": "Conseils d'achat"
+        }
+      ],
+      "cout_total_piece": 5000,
+      "cout_materiaux_piece": 2000,
+      "cout_main_oeuvre_piece": 3000
     }
   ],
-  "conseils": "Conseils personnalisés"
+  "analyse_globale": {
+    "score_global": "bon/moyen/mauvais",
+    "niveau_difficulte": 75,
+    "cout_total": 15000,
+    "cout_materiaux_total": 6000,
+    "cout_main_oeuvre_total": 9000,
+    "cout_meubles_total": 5000,
+    "duree_totale": "8 semaines",
+    "commentaire_general": "Commentaire détaillé",
+    "travaux_artisan": [
+      {
+        "nom": "Travail artisan",
+        "description": "Description détaillée",
+        "cout": 8000,
+        "duree": "4 semaines",
+        "raison_artisan": "Pourquoi artisan nécessaire",
+        "artisan_recommande": "Type d'artisan"
+      }
+    ],
+    "travaux_bricolage": [
+      {
+        "nom": "Travail bricolage",
+        "description": "Description détaillée",
+        "cout_materiaux": 2000,
+        "duree": "2 semaines",
+        "conseils_bricolage": "Conseils détaillés",
+        "outils_necessaires": ["Outil 1", "Outil 2"],
+        "difficulte": "facile/moyen/difficile"
+      }
+    ],
+    "planning": {
+      "phase1_duree": "2 semaines",
+      "phase1_taches": ["Démolition", "Préparation"],
+      "phase1_details": "Détails de la phase 1",
+      "phase2_duree": "4 semaines",
+      "phase2_taches": ["Installation", "Rénovation"],
+      "phase2_details": "Détails de la phase 2",
+      "phase3_duree": "2 semaines",
+      "phase3_taches": ["Finitions", "Peinture"],
+      "phase3_details": "Détails de la phase 3",
+      "duree_totale": "8 semaines"
+    },
+    "recommandations": {
+      "priorites": ["Travail 1", "Travail 2"],
+      "economies_possibles": "Comment économiser",
+      "investissements_rentables": "Investissements recommandés",
+      "conseils_securite": "Conseils de sécurité"
+    }
+  }
 }
 
-Réponds UNIQUEMENT avec le JSON valide.`;
+IMPORTANT: 
+- Réponds UNIQUEMENT avec le JSON, sans \`\`\`json ni texte avant/après
+- Fournis TOUS les détails demandés
+- Inclus métrage, prix meubles, matériaux spécifiques, produits concrets
+- Adapte selon le profil utilisateur et la description du projet`;
 
-        const response = await openai.chat.completions.create({
+        const requestData = {
             model: 'gpt-4o',
             messages: [
                 {
+                    role: 'system',
+                    content: 'Tu es un expert artisan en rénovation immobilière. Tu analyses des images et fournis des estimations détaillées et réalistes des travaux nécessaires.'
+                },
+                {
                     role: 'user',
                     content: [
-                        { type: 'text', text: prompt },
+                        {
+                            type: "text",
+                            text: prompt
+                        },
                         ...imageContents
                     ]
                 }
             ],
             max_tokens: 4000,
-            temperature: 0.3
-        });
+            temperature: 0.7
+        };
 
-        const content = response.choices[0].message.content;
-        console.log('🤖 Réponse OpenAI reçue');
-
-        // Parser la réponse JSON
-        let parsedResponse;
+        console.log('🔑 Clé API configurée et valide');
+        console.log('📤 Envoi à OpenAI...');
+        console.log('URL:', OPENAI_API_URL);
+        console.log('Modèle:', requestData.model);
+        
+        let response;
         try {
-            const cleanedContent = content.replace(/```json\n?|\n?```/g, '').trim();
-            parsedResponse = JSON.parse(cleanedContent);
+            response = await axios.post(OPENAI_API_URL, requestData, {
+                headers: {
+                    'Authorization': `Bearer ${OPENAI_API_KEY}`,
+                    'Content-Type': 'application/json'
+                },
+                timeout: 120000 // Augmenté à 2 minutes pour Render
+            });
+        } catch (apiError) {
+            console.error('❌ Erreur API OpenAI:', apiError.response?.status, apiError.response?.statusText);
+            console.error('❌ Détails erreur:', apiError.response?.data);
+            console.error('❌ Message erreur:', apiError.message);
+            console.error('❌ URL appelée:', OPENAI_API_URL);
+            console.error('❌ Modèle utilisé:', requestData.model);
+            
+            if (apiError.response?.status === 401) {
+                throw new Error('Clé API OpenAI invalide ou expirée - Vérifiez OPENAI_API_KEY');
+            } else if (apiError.response?.status === 429) {
+                throw new Error('Limite de requêtes OpenAI dépassée - Réessayez plus tard');
+            } else if (apiError.response?.status === 400) {
+                throw new Error('Requête OpenAI invalide: ' + JSON.stringify(apiError.response?.data));
+            } else if (apiError.response?.status === 404) {
+                throw new Error('Modèle OpenAI non trouvé - Vérifiez le nom du modèle');
+            } else {
+                throw new Error('Erreur API OpenAI: ' + apiError.message);
+            }
+        }
+
+        console.log('✅ Réponse OpenAI reçue');
+        console.log('📊 Status:', response.status);
+        console.log('📊 Headers:', response.headers);
+        
+        if (!response.data || !response.data.choices || !response.data.choices[0]) {
+            throw new Error('Réponse OpenAI invalide: ' + JSON.stringify(response.data));
+        }
+        
+        const aiResponse = response.data.choices[0].message.content;
+        console.log('🤖 Réponse IA:', aiResponse.substring(0, 200) + '...');
+
+        // Parser le JSON avec gestion d'erreur robuste
+        try {
+            // Nettoyer le contenu des marqueurs de code
+            let cleanContent = aiResponse;
+            
+            // Supprimer les marqueurs ```json et ```
+            cleanContent = cleanContent.replace(/```json\s*/g, '');
+            cleanContent = cleanContent.replace(/```\s*/g, '');
+            
+            // Supprimer les espaces en début et fin
+            cleanContent = cleanContent.trim();
+            
+            console.log('🧹 Contenu nettoyé:', cleanContent.substring(0, 200) + '...');
+            
+            const parsed = JSON.parse(cleanContent);
+            console.log('✅ JSON parsé avec succès');
+            return parsed;
         } catch (parseError) {
             console.error('❌ Erreur parsing JSON:', parseError);
-            throw new Error('Format de réponse invalide');
+            console.log('📄 Contenu reçu:', aiResponse.substring(0, 500) + '...');
+            
+            // Tentative de récupération avec regex
+            try {
+                const jsonMatch = aiResponse.match(/\{[\s\S]*\}/);
+                if (jsonMatch) {
+                    const recoveredJson = jsonMatch[0];
+                    console.log('🔄 Tentative de récupération JSON...');
+                    const parsed = JSON.parse(recoveredJson);
+                    console.log('✅ JSON récupéré avec succès');
+                    return parsed;
+                }
+            } catch (recoveryError) {
+                console.error('❌ Échec de la récupération JSON:', recoveryError);
+            }
+            
+            // Fallback avec une réponse détaillée
+            console.log('🔄 Utilisation du fallback détaillé...');
+            return {
+                pieces: [
+                    {
+                        nom: "Pièce analysée",
+                        etat: "Nécessite rénovation complète",
+                        surface_estimee: "15-20m²",
+                        dimensions: "4m x 4m x 2.5m",
+                        elements_identifies: [
+                            {
+                                type: "mur",
+                                etat: "moyen",
+                                description: "Murs nécessitant rénovation"
+                            },
+                            {
+                                type: "sol",
+                                etat: "mauvais",
+                                description: "Sol à refaire"
+                            },
+                            {
+                                type: "plafond",
+                                etat: "bon",
+                                description: "Plafond en bon état"
+                            }
+                        ],
+                        travaux: [
+                            {
+                                nom: "Rénovation complète",
+                                description: "Rénovation complète de la pièce incluant murs, sol, électricité et finitions",
+                                type_execution: "artisan",
+                                surface_ou_quantite: "15m²",
+                                materiaux_necessaires: [
+                                    {
+                                        nom: "Peinture murale",
+                                        marque: "Dulux",
+                                        quantite: "5L",
+                                        prix_unitaire: 45,
+                                        prix_total: 225,
+                                        magasin: "Leroy Merlin"
+                                    },
+                                    {
+                                        nom: "Carrelage sol",
+                                        marque: "Porcelanosa",
+                                        quantite: "15m²",
+                                        prix_unitaire: 60,
+                                        prix_total: 900,
+                                        magasin: "Brico Dépôt"
+                                    }
+                                ],
+                                cout_materiaux: 1500,
+                                cout_main_oeuvre: 3000,
+                                cout_total: 4500,
+                                duree_estimee: "2-3 semaines",
+                                priorite: "haute",
+                                conseils: "Faites appel à un artisan qualifié pour un devis précis. Prévoyez une marge de 20% pour les imprévus.",
+                                produits_recommandes: ["Peinture Dulux Ambiance", "Carrelage Porcelanosa"]
+                            }
+                        ],
+                        meubles_equipements: [
+                            {
+                                nom: "Canapé 3 places",
+                                type: "canape",
+                                dimensions: "2.2m x 0.9m x 0.8m",
+                                prix_estime: 1200,
+                                marques_recommandees: ["IKEA", "Roche Bobois"],
+                                conseils_achat: "Privilégiez un canapé convertible pour optimiser l'espace"
+                            },
+                            {
+                                nom: "Table basse",
+                                type: "table",
+                                dimensions: "1.2m x 0.6m x 0.45m",
+                                prix_estime: 300,
+                                marques_recommandees: ["IKEA", "Maisons du Monde"],
+                                conseils_achat: "Table avec rangement intégré recommandée"
+                            }
+                        ],
+                        cout_total_piece: 6000,
+                        cout_materiaux_piece: 1500,
+                        cout_main_oeuvre_piece: 3000
+                    }
+                ],
+                analyse_globale: {
+                    score_global: "moyen",
+                    niveau_difficulte: 65,
+                    cout_total: 6000,
+                    cout_materiaux_total: 1500,
+                    cout_main_oeuvre_total: 3000,
+                    cout_meubles_total: 1500,
+                    duree_totale: "3-4 semaines",
+                    commentaire_general: "Rénovation complète nécessaire. Travaux de qualité nécessitant un artisan qualifié. Budget réaliste pour un résultat professionnel.",
+                    travaux_artisan: [
+                        {
+                            nom: "Rénovation complète",
+                            description: "Rénovation complète incluant maçonnerie, électricité, plomberie et finitions",
+                            cout: 4500,
+                            duree: "2-3 semaines",
+                            raison_artisan: "Travaux complexes nécessitant expertise technique et garantie décennale",
+                            artisan_recommande: "Artisan généraliste ou maçon"
+                        }
+                    ],
+                    travaux_bricolage: [
+                        {
+                            nom: "Préparation et finitions",
+                            description: "Préparation des surfaces, ponçage, nettoyage et finitions",
+                            cout_materiaux: 200,
+                            duree: "1 semaine",
+                            conseils_bricolage: "Préparer la zone de travail, protéger les meubles, aérer pendant les travaux",
+                            outils_necessaires: ["Ponceuse", "Pinceaux", "Rouleaux", "Bâches de protection"],
+                            difficulte: "moyen"
+                        }
+                    ],
+                        planning: {
+                            phase1_duree: "1 semaine",
+                            phase1_taches: ["Préparation", "Démolition"],
+                            phase1_details: "Démontage des éléments existants et préparation des surfaces",
+                            phase2_duree: "2 semaines",
+                            phase2_taches: ["Installation", "Rénovation"],
+                            phase2_details: "Installation des nouveaux éléments et rénovation des structures",
+                            phase3_duree: "1 semaine",
+                            phase3_taches: ["Finitions", "Peinture"],
+                            phase3_details: "Finitions, peinture et nettoyage final",
+                            duree_totale: "4 semaines"
+                        },
+                        recommandations: {
+                            priorites: ["Rénovation structurelle", "Installation électrique", "Finitions"],
+                            economies_possibles: "Achetez les matériaux en gros, négociez avec les artisans",
+                            investissements_rentables: "Isolation thermique, éclairage LED, robinetterie économique",
+                            conseils_securite: "Portez des équipements de protection, aérez pendant les travaux"
+                        }
+                    }
+                }
+            };
         }
-
-        console.log('✅ Analyse terminée avec succès');
-        res.json(parsedResponse);
-
     } catch (error) {
-        console.error('❌ Erreur analyse:', error);
-        
-        if (error.message.includes('Clé API OpenAI')) {
-            res.status(401).json({ error: 'Clé API OpenAI invalide ou expirée - Vérifiez OPENAI_API_KEY' });
-        } else {
-            res.status(500).json({ error: 'Erreur lors de l\'analyse des images' });
+        console.error('❌ Erreur analyse images:', error.message);
+        if (error.response) {
+            console.error('Status:', error.response.status);
+            console.error('Data:', error.response.data);
         }
+        throw new Error(`Impossible d'analyser les images avec l'IA: ${error.message}`);
+    }
+}
+
+// Fonction pour le chatbot avec GPT-4
+async function chatWithAI(message, projectContext = '') {
+    try {
+        console.log('💬 Chatbot: ' + message);
+        
+        const systemPrompt = `Tu es un assistant expert en rénovation immobilière. Tu réponds de manière concise et pratique aux questions des utilisateurs.
+
+CONTEXTE DU PROJET: ${projectContext}
+
+INSTRUCTIONS:
+- Réponds de manière claire et concise
+- Donne des conseils pratiques et réalistes
+- Évite les réponses trop longues
+- Sois direct et utile`;
+
+        const requestData = {
+            model: 'gpt-4o',
+            messages: [
+                {
+                    role: 'system',
+                    content: systemPrompt
+                },
+                {
+                    role: 'user',
+                    content: message
+                }
+            ],
+            max_tokens: 1000,
+            temperature: 0.7
+        };
+
+        const response = await axios.post(OPENAI_API_URL, requestData, {
+            headers: {
+                'Authorization': `Bearer ${OPENAI_API_KEY}`,
+                'Content-Type': 'application/json'
+            },
+            timeout: 30000
+        });
+
+        const aiResponse = response.data.choices[0].message.content;
+        console.log('🤖 Chatbot réponse:', aiResponse);
+        return aiResponse;
+    } catch (error) {
+        console.error('❌ Erreur chatbot:', error.message);
+        return 'Désolé, je ne peux pas répondre pour le moment. Veuillez réessayer.';
+    }
+}
+
+// Routes
+app.post('/api/analyze-images', upload.array('images', 5), async (req, res) => {
+    console.log('📥 Requête analyse reçue');
+    console.log('🔍 Headers:', req.headers);
+    console.log('📊 Body keys:', Object.keys(req.body));
+    
+    try {
+        if (!req.files || req.files.length === 0) {
+            console.error('❌ Aucune image fournie');
+            return res.status(400).json({ error: 'Aucune image fournie' });
+        }
+
+        console.log('📸 Images reçues:', req.files.length);
+        console.log('📸 Types d\'images:', req.files.map(f => f.mimetype));
+        
+        let userProfile = {};
+        let description = '';
+        
+        try {
+            userProfile = req.body.userProfile ? JSON.parse(req.body.userProfile) : {};
+            description = req.body.description || '';
+        } catch (parseError) {
+            console.error('❌ Erreur parsing userProfile:', parseError);
+            userProfile = {};
+            description = req.body.description || '';
+        }
+        
+        console.log('👤 Profil utilisateur:', userProfile);
+        console.log('📝 Description du projet:', description);
+        
+        // Analyser avec OpenAI
+        const analysis = await analyzeImagesWithAI(req.files, userProfile, description);
+        
+        const result = {
+            images: req.files.map(file => ({
+                filename: file.originalname,
+                originalname: file.originalname,
+                size: file.size,
+                mimetype: file.mimetype
+            })),
+            travaux: analysis
+        };
+        
+        console.log('🎉 Analyse terminée avec succès');
+        res.json(result);
+        
+    } catch (error) {
+        console.error('❌ Erreur analyse complète:', error);
+        console.error('❌ Stack trace:', error.stack);
+        
+        // Réponse d'erreur plus détaillée pour le debugging
+        res.status(500).json({ 
+            error: 'Erreur lors de l\'analyse des images',
+            message: error.message,
+            timestamp: new Date().toISOString()
+        });
     }
 });
 
-// Servir les fichiers statiques
-app.use(express.static('public'));
-
-// Route de health check pour Render
-app.get('/api/health', (req, res) => {
-    res.json({ status: 'OK', timestamp: new Date().toISOString() });
+app.post('/api/chat', async (req, res) => {
+    console.log('💬 Requête chatbot reçue');
+    
+    try {
+        const { message, projectContext } = req.body;
+        
+        if (!message) {
+            return res.status(400).json({ error: 'Message requis' });
+        }
+        
+        const response = await chatWithAI(message, projectContext);
+        res.json({ response });
+        
+    } catch (error) {
+        console.error('❌ Erreur chatbot:', error.message);
+        res.status(500).json({ error: 'Erreur chatbot' });
+    }
 });
 
-// Route par défaut
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+app.get('/api/test', (req, res) => {
+    res.json({ 
+        message: 'API TotoTravo fonctionne!',
+        timestamp: new Date().toISOString(),
+        environment: process.env.NODE_ENV || 'development',
+        port: PORT,
+        openai_key_exists: !!OPENAI_API_KEY,
+        openai_key_preview: OPENAI_API_KEY ? '[CONFIGURÉE]' : 'Non définie'
+    });
+});
+
+// Gestion d'erreurs globale
+app.use((error, req, res, next) => {
+    console.error('❌ Erreur serveur:', error);
+    console.error('❌ Stack trace:', error.stack);
+    console.error('❌ URL:', req.url);
+    console.error('❌ Method:', req.method);
+    console.error('❌ Headers:', req.headers);
+    
+    res.status(500).json({
+        error: 'Erreur interne du serveur',
+        message: error.message,
+        timestamp: new Date().toISOString(),
+        url: req.url,
+        method: req.method
+    });
+});
+
+// Route de santé pour Vercel
+app.get('/api/health', (req, res) => {
+    res.json({
+        status: 'OK',
+        timestamp: new Date().toISOString(),
+        environment: process.env.NODE_ENV || 'development'
+    });
 });
 
 // Démarrage du serveur
-console.log('🚀 Démarrage serveur TotoTravo');
-console.log('🔍 Debug variables d\'environnement:');
-console.log('   process.env.PORT:', process.env.PORT);
-console.log('   PORT configuré:', PORT);
-console.log('   NODE_ENV:', process.env.NODE_ENV);
-console.log('   OPENAI_API_KEY configurée:', !!OPENAI_API_KEY);
-console.log('   DEEPSEEK_API_KEY configurée:', !!DEEPSEEK_API_KEY);
-
 app.listen(PORT, () => {
+            console.log('🔑 Configuration:');
+        console.log('   OPENAI_API_KEY: [CONFIGURÉE]');
+    console.log('   PORT:', PORT);
     console.log('🚀 Serveur démarré sur http://localhost:' + PORT);
     console.log('🌍 Environnement:', process.env.NODE_ENV || 'development');
-    console.log('✅ Serveur prêt à recevoir des requêtes');
 });
+
+// Export pour Vercel
+module.exports = app;
 

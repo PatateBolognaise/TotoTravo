@@ -130,7 +130,7 @@ function initializeQuestionnaire() {
 function updateQuestionnaireUI() {
     // Show/hide questions
     for (let i = 1; i <= totalQuestions; i++) {
-        const question = document.getElementById(`q${i}`);
+        const question = document.querySelector(`[data-question="${i}"]`);
         if (question) {
             question.style.display = i === currentQuestion ? 'block' : 'none';
         }
@@ -157,18 +157,8 @@ function updateQuestionnaireUI() {
         finishBtn.style.visibility = currentQuestion === totalQuestions ? 'visible' : 'hidden';
     }
     
-    // Update progress dots
-    document.querySelectorAll('.progress-dot').forEach((dot, index) => {
-        dot.classList.remove('active', 'completed');
-        if (index + 1 === currentQuestion) {
-            dot.classList.add('active');
-        } else if (index + 1 < currentQuestion) {
-            dot.classList.add('completed');
-        }
-    });
-    
     // Check if current question is answered
-    const currentQuestionElement = document.getElementById(`q${currentQuestion}`);
+    const currentQuestionElement = document.querySelector(`[data-question="${currentQuestion}"]`);
     if (currentQuestionElement) {
         const selectedOption = currentQuestionElement.querySelector('input:checked');
         if (nextBtn) nextBtn.disabled = !selectedOption;

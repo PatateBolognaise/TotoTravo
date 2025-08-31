@@ -146,3 +146,5 @@ const questions = await generateAIQuestions(userProfile, description);
 **L'IA génère maintenant des questions intelligentes ET des analyses ultra-détaillées !** 🎯
 
 
+
+
