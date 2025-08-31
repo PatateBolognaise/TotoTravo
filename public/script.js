@@ -87,15 +87,22 @@ const NavigationManager = {
     },
 
     goToStep: (step) => {
+        console.log('🔄 Navigation vers l\'étape:', step);
+        
         // Masquer toutes les sections
         document.querySelectorAll('.section').forEach(section => {
             section.classList.remove('active');
+            section.style.display = 'none';
         });
         
         // Afficher la section demandée
         const targetSection = document.getElementById(`${step}Section`);
         if (targetSection) {
             targetSection.classList.add('active');
+            targetSection.style.display = 'block';
+            console.log('✅ Section affichée:', targetSection.id);
+        } else {
+            console.error('❌ Section non trouvée:', `${step}Section`);
         }
         
         // Mettre à jour la navigation
@@ -109,6 +116,7 @@ const NavigationManager = {
         }
         
         AppState.currentStep = step;
+        console.log('✅ Navigation terminée vers:', step);
     },
 
     updateProgress: () => {
@@ -369,9 +377,13 @@ const UploadManager = {
 
             Utils.showNotification('Analyse terminée avec succès !', 'success');
             
+            console.log('🎉 Analyse terminée, navigation vers les résultats...');
+            
             setTimeout(() => {
                 NavigationManager.goToStep('results');
-                ResultsManager.displayResults(result);
+                setTimeout(() => {
+                    ResultsManager.displayResults(result);
+                }, 100);
             }, 1000);
 
         } catch (error) {
@@ -425,14 +437,17 @@ const ResultsManager = {
     },
 
     displayResults: (results) => {
+        console.log('📊 Affichage des résultats:', results);
+        
         const container = document.getElementById('resultsContainer');
         if (!container) {
-            console.error('Container des résultats non trouvé');
+            console.error('❌ Container des résultats non trouvé');
             return;
         }
 
         try {
             const analysis = results.analysis || results;
+            console.log('🔍 Analyse à afficher:', analysis);
             
             container.innerHTML = `
                 <div class="results-header">
@@ -469,12 +484,15 @@ const ResultsManager = {
                 
                 ${analysis.conseils ? ResultsManager.renderAdvice(analysis.conseils) : ''}
             `;
+            
+            console.log('✅ Résultats affichés avec succès');
         } catch (error) {
-            console.error('Erreur lors de l\'affichage des résultats:', error);
+            console.error('❌ Erreur lors de l\'affichage des résultats:', error);
             container.innerHTML = `
                 <div class="results-header">
                     <h2>❌ Erreur d'affichage</h2>
                     <p>Impossible d'afficher les résultats. Veuillez réessayer.</p>
+                    <pre>${JSON.stringify(results, null, 2)}</pre>
                 </div>
             `;
         }
