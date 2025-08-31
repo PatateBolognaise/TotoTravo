@@ -3,9 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TotoTravo - Analyse IA de Rénovation</title>
+    <title>TotoTravo - Expert IA en Rénovation Immobilière</title>
+    <meta name="description" content="Analysez vos projets de rénovation avec l'IA. Obtenez des estimations précises, des conseils d'experts et un planning détaillé.">
     <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="manifest" href="manifest.json">
 </head>
 <body>
@@ -18,9 +22,18 @@
                     <h1>TotoTravo</h1>
                 </div>
                 <nav class="nav">
-                    <button class="tab-btn active" data-tab="questionnaire">Questionnaire</button>
-                    <button class="tab-btn" data-tab="upload">Upload</button>
-                    <button class="tab-btn" data-tab="results">Résultats</button>
+                    <button class="nav-btn active" data-step="questionnaire">
+                        <span class="step-number">1</span>
+                        <span class="step-text">Profil</span>
+                    </button>
+                    <button class="nav-btn" data-step="upload">
+                        <span class="step-number">2</span>
+                        <span class="step-text">Photos</span>
+                    </button>
+                    <button class="nav-btn" data-step="results">
+                        <span class="step-number">3</span>
+                        <span class="step-text">Résultats</span>
+                    </button>
                 </nav>
             </div>
         </div>
@@ -31,127 +44,196 @@
         <div class="container">
             <!-- Questionnaire Section -->
             <section id="questionnaireSection" class="section active">
-                <div class="questionnaire-container">
-                    <div class="questionnaire-header">
-                        <h2>🎯 Questionnaire Personnalisé</h2>
-                        <p>Répondez à quelques questions pour personnaliser votre analyse</p>
+                <div class="section-content">
+                    <div class="section-header">
+                        <h2>🎯 Personnalisez votre projet</h2>
+                        <p>Répondez à quelques questions pour obtenir une analyse ultra-précise</p>
                     </div>
                     
                     <form id="questionnaireForm" class="questionnaire-form">
                         <!-- Question 1 -->
                         <div class="question" data-question="1">
-                            <h3>1. Quel est votre niveau en bricolage ?</h3>
-                            <div class="options">
-                                <label class="radio-option">
+                            <div class="question-header">
+                                <span class="question-number">1</span>
+                                <h3>Quel est votre niveau en bricolage ?</h3>
+                            </div>
+                            <div class="options-grid">
+                                <label class="option-card">
                                     <input type="radio" name="niveau_bricolage" value="debutant" required>
-                                    <span class="radio-custom"></span>
-                                    <span class="option-label">Débutant</span>
+                                    <div class="option-content">
+                                        <i class="fas fa-seedling"></i>
+                                        <h4>Débutant</h4>
+                                        <p>Peu d'expérience, conseils détaillés nécessaires</p>
+                                    </div>
                                 </label>
-                                <label class="radio-option">
+                                <label class="option-card">
                                     <input type="radio" name="niveau_bricolage" value="intermediaire">
-                                    <span class="radio-custom"></span>
-                                    <span class="option-label">Intermédiaire</span>
+                                    <div class="option-content">
+                                        <i class="fas fa-tools"></i>
+                                        <h4>Intermédiaire</h4>
+                                        <p>Expérience modérée, peut faire des travaux simples</p>
+                                    </div>
                                 </label>
-                                <label class="radio-option">
+                                <label class="option-card">
                                     <input type="radio" name="niveau_bricolage" value="expert">
-                                    <span class="radio-custom"></span>
-                                    <span class="option-label">Expert</span>
+                                    <div class="option-content">
+                                        <i class="fas fa-crown"></i>
+                                        <h4>Expert</h4>
+                                        <p>Expérience avancée, peut faire des travaux complexes</p>
+                                    </div>
                                 </label>
                             </div>
                         </div>
 
                         <!-- Question 2 -->
                         <div class="question" data-question="2" style="display: none;">
-                            <h3>2. Quel est votre budget ?</h3>
-                            <div class="options">
-                                <label class="radio-option">
+                            <div class="question-header">
+                                <span class="question-number">2</span>
+                                <h3>Quel est votre budget ?</h3>
+                            </div>
+                            <div class="options-grid">
+                                <label class="option-card">
                                     <input type="radio" name="budget" value="serre" required>
-                                    <span class="radio-custom"></span>
-                                    <span class="option-label">Budget serré</span>
+                                    <div class="option-content">
+                                        <i class="fas fa-piggy-bank"></i>
+                                        <h4>Budget serré</h4>
+                                        <p>Optimisation des coûts, solutions économiques</p>
+                                    </div>
                                 </label>
-                                <label class="radio-option">
+                                <label class="option-card">
                                     <input type="radio" name="budget" value="moyen">
-                                    <span class="radio-custom"></span>
-                                    <span class="option-label">Budget moyen</span>
+                                    <div class="option-content">
+                                        <i class="fas fa-balance-scale"></i>
+                                        <h4>Budget moyen</h4>
+                                        <p>Qualité équilibrée, bon rapport qualité/prix</p>
+                                    </div>
                                 </label>
-                                <label class="radio-option">
+                                <label class="option-card">
                                     <input type="radio" name="budget" value="confortable">
-                                    <span class="radio-custom"></span>
-                                    <span class="option-label">Budget confortable</span>
+                                    <div class="option-content">
+                                        <i class="fas fa-gem"></i>
+                                        <h4>Budget confortable</h4>
+                                        <p>Qualité premium, matériaux haut de gamme</p>
+                                    </div>
                                 </label>
                             </div>
                         </div>
 
                         <!-- Question 3 -->
                         <div class="question" data-question="3" style="display: none;">
-                            <h3>3. Quel délai souhaitez-vous ?</h3>
-                            <div class="options">
-                                <label class="radio-option">
+                            <div class="question-header">
+                                <span class="question-number">3</span>
+                                <h3>Quel délai souhaitez-vous ?</h3>
+                            </div>
+                            <div class="options-grid">
+                                <label class="option-card">
                                     <input type="radio" name="delai" value="urgent" required>
-                                    <span class="radio-custom"></span>
-                                    <span class="option-label">Urgent</span>
+                                    <div class="option-content">
+                                        <i class="fas fa-fire"></i>
+                                        <h4>Urgent</h4>
+                                        <p>Planning accéléré, travaux prioritaires</p>
+                                    </div>
                                 </label>
-                                <label class="radio-option">
+                                <label class="option-card">
                                     <input type="radio" name="delai" value="normal">
-                                    <span class="radio-custom"></span>
-                                    <span class="option-label">Normal</span>
+                                    <div class="option-content">
+                                        <i class="fas fa-clock"></i>
+                                        <h4>Normal</h4>
+                                        <p>Délai standard, planning équilibré</p>
+                                    </div>
                                 </label>
-                                <label class="radio-option">
+                                <label class="option-card">
                                     <input type="radio" name="delai" value="flexible">
-                                    <span class="radio-custom"></span>
-                                    <span class="option-label">Flexible</span>
+                                    <div class="option-content">
+                                        <i class="fas fa-calendar-alt"></i>
+                                        <h4>Flexible</h4>
+                                        <p>Délai flexible, optimisation possible</p>
+                                    </div>
                                 </label>
                             </div>
                         </div>
 
                         <!-- Question 4 -->
                         <div class="question" data-question="4" style="display: none;">
-                            <h3>4. Quel niveau d'implication souhaitez-vous ?</h3>
-                            <div class="options">
-                                <label class="radio-option">
+                            <div class="question-header">
+                                <span class="question-number">4</span>
+                                <h3>Quel niveau d'implication souhaitez-vous ?</h3>
+                            </div>
+                            <div class="options-grid">
+                                <label class="option-card">
                                     <input type="radio" name="implication" value="complete" required>
-                                    <span class="radio-custom"></span>
-                                    <span class="option-label">Implication complète</span>
+                                    <div class="option-content">
+                                        <i class="fas fa-hands-helping"></i>
+                                        <h4>Implication complète</h4>
+                                        <p>Participation active à tous les travaux</p>
+                                    </div>
                                 </label>
-                                <label class="radio-option">
+                                <label class="option-card">
                                     <input type="radio" name="implication" value="partielle">
-                                    <span class="radio-custom"></span>
-                                    <span class="option-label">Implication partielle</span>
+                                    <div class="option-content">
+                                        <i class="fas fa-user-friends"></i>
+                                        <h4>Implication partielle</h4>
+                                        <p>Aide ponctuelle, supervision des travaux</p>
+                                    </div>
                                 </label>
-                                <label class="radio-option">
+                                <label class="option-card">
                                     <input type="radio" name="implication" value="minimale">
-                                    <span class="radio-custom"></span>
-                                    <span class="option-label">Implication minimale</span>
+                                    <div class="option-content">
+                                        <i class="fas fa-user-check"></i>
+                                        <h4>Implication minimale</h4>
+                                        <p>Délégation complète aux professionnels</p>
+                                    </div>
                                 </label>
                             </div>
                         </div>
 
                         <!-- Question 5 -->
                         <div class="question" data-question="5" style="display: none;">
-                            <h3>5. Quel type de projet ?</h3>
-                            <div class="options">
-                                <label class="radio-option">
+                            <div class="question-header">
+                                <span class="question-number">5</span>
+                                <h3>Quel type de projet ?</h3>
+                            </div>
+                            <div class="options-grid">
+                                <label class="option-card">
                                     <input type="radio" name="type_projet" value="renovation" required>
-                                    <span class="radio-custom"></span>
-                                    <span class="option-label">Rénovation complète</span>
+                                    <div class="option-content">
+                                        <i class="fas fa-home"></i>
+                                        <h4>Rénovation complète</h4>
+                                        <p>Transformation complète de l'espace</p>
+                                    </div>
                                 </label>
-                                <label class="radio-option">
+                                <label class="option-card">
                                     <input type="radio" name="type_projet" value="amelioration">
-                                    <span class="radio-custom"></span>
-                                    <span class="option-label">Amélioration</span>
+                                    <div class="option-content">
+                                        <i class="fas fa-paint-brush"></i>
+                                        <h4>Amélioration</h4>
+                                        <p>Amélioration et modernisation</p>
+                                    </div>
                                 </label>
-                                <label class="radio-option">
+                                <label class="option-card">
                                     <input type="radio" name="type_projet" value="reparation">
-                                    <span class="radio-custom"></span>
-                                    <span class="option-label">Réparation</span>
+                                    <div class="option-content">
+                                        <i class="fas fa-wrench"></i>
+                                        <h4>Réparation</h4>
+                                        <p>Réparation et maintenance</p>
+                                    </div>
                                 </label>
                             </div>
                         </div>
 
-                        <div class="questionnaire-actions">
-                            <button type="button" id="prevBtn" class="btn-secondary" style="display: none;">Précédent</button>
-                            <button type="button" id="nextBtn" class="btn-primary">Suivant</button>
-                            <button type="button" id="finishBtn" class="btn-primary" style="display: none;">Terminer</button>
+                        <div class="form-actions">
+                            <button type="button" id="prevBtn" class="btn-secondary" style="display: none;">
+                                <i class="fas fa-arrow-left"></i>
+                                Précédent
+                            </button>
+                            <button type="button" id="nextBtn" class="btn-primary">
+                                Suivant
+                                <i class="fas fa-arrow-right"></i>
+                            </button>
+                            <button type="button" id="finishBtn" class="btn-primary" style="display: none;">
+                                Terminer
+                                <i class="fas fa-check"></i>
+                            </button>
                         </div>
                     </form>
                 </div>
@@ -159,17 +241,20 @@
 
             <!-- Upload Section -->
             <section id="uploadSection" class="section">
-                <div class="upload-container">
-                    <div class="upload-header">
-                        <h2>📸 Upload de vos Images</h2>
+                <div class="section-content">
+                    <div class="section-header">
+                        <h2>📸 Partagez vos photos</h2>
                         <p>Ajoutez jusqu'à 5 photos de votre projet pour une analyse précise</p>
                     </div>
                     
                     <div class="upload-area" id="uploadArea">
                         <div class="upload-content">
-                            <i class="fas fa-cloud-upload-alt"></i>
+                            <div class="upload-icon">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                            </div>
                             <h3>Glissez vos images ici</h3>
                             <p>ou cliquez pour sélectionner</p>
+                            <span class="upload-hint">Formats acceptés : JPG, PNG, WEBP (max 10MB par image)</span>
                             <input type="file" id="fileInput" multiple accept="image/*" style="display: none;">
                         </div>
                     </div>
@@ -178,10 +263,10 @@
                     
                     <div class="description-section">
                         <label for="description">Description du projet (optionnel)</label>
-                        <textarea id="description" placeholder="Décrivez votre projet, vos objectifs, contraintes particulières..."></textarea>
+                        <textarea id="description" placeholder="Décrivez votre projet, vos objectifs, contraintes particulières, style souhaité..."></textarea>
                     </div>
                     
-                    <button id="analyzeBtn" class="btn-primary" disabled>
+                    <button id="analyzeBtn" class="btn-primary btn-large" disabled>
                         <i class="fas fa-magic"></i>
                         Analyser avec IA
                     </button>
@@ -190,18 +275,19 @@
 
             <!-- Loading Section -->
             <section id="loadingSection" class="section" style="display: none;">
-                <div class="loading-container">
-                    <div class="loading-content">
+                <div class="section-content">
+                    <div class="loading-container">
                         <div class="loading-spinner">
-                            <i class="fas fa-cog fa-spin"></i>
+                            <div class="spinner"></div>
                         </div>
-                        <div class="loading-text">
+                        <div class="loading-content">
                             <h2>🤖 IA en cours d'analyse...</h2>
-                            <p>Analyse de vos images et génération de l'estimation</p>
-                            <div class="loading-dots">
-                                <span></span>
-                                <span></span>
-                                <span></span>
+                            <p id="loadingMessage">Analyse de vos images et génération de l'estimation</p>
+                            <div class="loading-progress">
+                                <div class="progress-bar">
+                                    <div class="progress-fill"></div>
+                                </div>
+                                <span class="progress-text">Étape 1/4</span>
                             </div>
                         </div>
                     </div>
@@ -210,15 +296,21 @@
 
             <!-- Results Section -->
             <section id="resultsSection" class="section" style="display: none;">
-                <div class="results-container">
-                    <!-- Le contenu sera généré dynamiquement -->
-                </div>
-                
-                <div class="results-actions">
-                    <button id="newAnalysisBtn" class="btn-secondary">
-                        <i class="fas fa-redo"></i>
-                        Nouvelle Analyse
-                    </button>
+                <div class="section-content">
+                    <div class="results-container" id="resultsContainer">
+                        <!-- Le contenu sera généré dynamiquement -->
+                    </div>
+                    
+                    <div class="results-actions">
+                        <button id="newAnalysisBtn" class="btn-secondary">
+                            <i class="fas fa-redo"></i>
+                            Nouvelle Analyse
+                        </button>
+                        <button id="downloadBtn" class="btn-primary">
+                            <i class="fas fa-download"></i>
+                            Télécharger le rapport
+                        </button>
+                    </div>
                 </div>
             </section>
         </div>
@@ -227,14 +319,22 @@
     <!-- Chatbot -->
     <div class="chatbot" id="chatbot">
         <div class="chatbot-header">
-            <h3><i class="fas fa-robot"></i> Assistant IA</h3>
+            <div class="chatbot-info">
+                <i class="fas fa-robot"></i>
+                <div>
+                    <h3>Assistant IA</h3>
+                    <span class="status">En ligne</span>
+                </div>
+            </div>
             <button id="chatbotClose" class="chatbot-close">
                 <i class="fas fa-times"></i>
             </button>
         </div>
         <div class="chatbot-messages" id="chatbotMessages">
             <div class="message bot">
-                <i class="fas fa-robot"></i>
+                <div class="message-avatar">
+                    <i class="fas fa-robot"></i>
+                </div>
                 <div class="message-content">
                     <p>Bonjour ! Je suis votre assistant IA pour la rénovation. Comment puis-je vous aider ?</p>
                 </div>

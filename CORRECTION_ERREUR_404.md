@@ -112,3 +112,4 @@ Tu devrais voir dans les logs :
 **Plus d'erreur 404 - Analyse photos fonctionnelle !** 🎯✨
 
 
+
