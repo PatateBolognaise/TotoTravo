@@ -261,7 +261,7 @@ class AnalysisService {
                 };
             });
 
-            const prompt = `Tu es un expert en diagnostic immobilier et estimation de travaux, niveau bureau d'études techniques. Tu as 25 ans d'expérience en rénovation, expertise en thermique, structure, électricité, plomberie, et réglementation. Analyse ces images avec une méthodologie rigoureuse et fournis un diagnostic technique complet.
+            const prompt = `Tu es un expert en diagnostic immobilier et estimation de travaux, niveau bureau d'études techniques. Analyse ces images et fournis un diagnostic technique complet et détaillé.
 
 PROFIL UTILISATEUR:
 ${JSON.stringify(userProfile, null, 2)}
@@ -269,50 +269,15 @@ ${JSON.stringify(userProfile, null, 2)}
 DESCRIPTION DU PROJET:
 ${description || 'Aucune description fournie'}
 
-MÉTHODOLOGIE D'ANALYSE TECHNIQUE:
+INSTRUCTIONS:
+1. Analyse chaque image en détail
+2. Identifie les lots techniques visibles
+3. Évalue l'état (BON/MOYEN/DÉGRADÉ/CRITIQUE)
+4. Estime les coûts avec 3 fourchettes
+5. Propose des scénarios Éco/Standard/Premium
+6. Liste les questions pour affiner le diagnostic
 
-1. DIAGNOSTIC PAR LOTS TECHNIQUES :
-   - Structure (murs porteurs, planchers, fondations)
-   - Toiture (couverture, charpente, isolation)
-   - Isolation (murs, plafonds, planchers)
-   - Électricité (tableau, circuits, points lumineux)
-   - Plomberie (distribution, évacuation, équipements)
-   - Chauffage/Climatisation (générateur, distribution)
-   - Ventilation (VMC, entrées d'air)
-   - Menuiseries (portes, fenêtres, volets)
-   - Sols/Murs/Plafonds (revêtements, finitions)
-   - SDB/Cuisine (équipements, aménagements)
-   - Humidité (infiltrations, condensation, remontées)
-   - Accessibilité (handicap, normes PMR)
-   - Extérieurs (façades, terrasses, jardins)
-
-2. ÉVALUATION DE L'ÉTAT :
-   Pour chaque lot : BON / MOYEN / DÉGRADÉ / CRITIQUE
-   - Causes probables identifiées
-   - Risques associés (sécurité, confort, performance)
-   - Urgence d'intervention (P0=urgent, P1=important, P2=confort, P3=esthétique)
-
-3. CHIFFRAGE DÉTAILLÉ :
-   - Matériaux (quantités + prix unitaires)
-   - Main-d'œuvre (temps + taux horaires)
-   - Évacuation/déchets (volume + coût)
-   - Marge/aléas (pourcentage selon incertitude)
-   - 3 fourchettes : BASSE / MÉDIANE / HAUTE
-   - TVA 20% incluse
-   - Multiplicateur régional (défaut 1.0)
-
-4. PLANIFICATION :
-   - Durée estimée par lot
-   - Dépendances entre lots
-   - Impact sur occupation
-   - Phases de travaux
-
-5. SCÉNARIOS :
-   - ÉCO : Optimisation coût, matériaux basiques
-   - STANDARD : Équilibre coût/performance
-   - PREMIUM : Matériaux haut de gamme, finitions soignées
-
-FORMAT JSON PROFESSIONNEL:
+FORMAT JSON SIMPLIFIÉ:
 {
   "resume_executif": {
     "surface_totale": "XX-XX m²",
@@ -320,25 +285,24 @@ FORMAT JSON PROFESSIONNEL:
     "duree_totale": "X-X mois",
     "cout_total": {
       "basse": "XXXXX €",
-      "mediane": "XXXXX €", 
+      "mediane": "XXXXX €",
       "haute": "XXXXX €"
     },
-    "priorites_urgentes": ["Liste P0 et P1"],
-    "risques_majeurs": ["Risques sécurité/structuraux"]
+    "priorites_urgentes": ["Travaux prioritaires"],
+    "risques_majeurs": ["Risques identifiés"]
   },
   "diagnostic_lots": [
     {
-      "lot": "Nom du lot technique",
+      "lot": "Nom du lot",
       "etat": "BON/MOYEN/DÉGRADÉ/CRITIQUE",
-      "causes_probables": ["Causes identifiées"],
-      "risques": ["Risques associés"],
+      "causes_probables": ["Causes"],
+      "risques": ["Risques"],
       "urgence": "P0/P1/P2/P3",
       "travaux_recommandes": {
-        "description": "Description précise",
+        "description": "Description des travaux",
         "quantites": {
           "surface": "XX m²",
-          "longueur": "XX ml", 
-          "unites": "XX unités"
+          "longueur": "XX ml"
         },
         "severite": "P0/P1/P2/P3"
       },
@@ -348,14 +312,13 @@ FORMAT JSON PROFESSIONNEL:
         "haute": "XXXX €"
       },
       "duree": "X-X semaines",
-      "dependances": ["Lots requis avant"],
       "impact_occupation": "Aucun/Partiel/Total"
     }
   ],
   "decomposition_couts": {
     "materiaux": {
       "basse": "XXXX €",
-      "mediane": "XXXX €", 
+      "mediane": "XXXX €",
       "haute": "XXXX €"
     },
     "main_oeuvre": {
@@ -370,7 +333,7 @@ FORMAT JSON PROFESSIONNEL:
     },
     "marge_aleas": {
       "basse": "XXX €",
-      "mediane": "XXX €", 
+      "mediane": "XXX €",
       "haute": "XXX €"
     },
     "tva": "20%",
@@ -378,10 +341,9 @@ FORMAT JSON PROFESSIONNEL:
   },
   "planning_travaux": {
     "phase_1": {
-      "nom": "Nom de la phase",
+      "nom": "Phase 1",
       "lots": ["Lots inclus"],
       "duree": "X-X semaines",
-      "dependances": ["Phases requises"],
       "impact_occupation": "Aucun/Partiel/Total"
     }
   },
@@ -396,7 +358,7 @@ FORMAT JSON PROFESSIONNEL:
       "duree": "X-X mois"
     },
     "standard": {
-      "nom": "Scénario Standard", 
+      "nom": "Scénario Standard",
       "description": "Équilibre coût/performance",
       "cout_total": "XXXXX €",
       "avantages": ["Avantages"],
@@ -407,7 +369,7 @@ FORMAT JSON PROFESSIONNEL:
     "premium": {
       "nom": "Scénario Premium",
       "description": "Haut de gamme",
-      "cout_total": "XXXXX €", 
+      "cout_total": "XXXXX €",
       "avantages": ["Avantages"],
       "inconvenients": ["Inconvénients"],
       "performance_energetique": "Classe X",
@@ -438,15 +400,7 @@ FORMAT JSON PROFESSIONNEL:
   ]
 }
 
-RÈGLES STRICTES :
-- Ne JAMAIS inventer d'informations manquantes
-- Indiquer clairement les hypothèses prises
-- Majorer les aléas si incertitude forte (+30% minimum)
-- Utiliser des fourchettes réalistes
-- Détail technique précis pour chaque lot
-- Questions ciblées pour affiner le diagnostic
-
-Réponds UNIQUEMENT avec le JSON valide.`;
+IMPORTANT: Sois précis mais ne complique pas. Réponds UNIQUEMENT avec le JSON valide.`;
 
             console.log('🤖 Envoi de la requête à OpenAI...');
             
@@ -468,16 +422,38 @@ Réponds UNIQUEMENT avec le JSON valide.`;
             console.log('✅ Réponse OpenAI reçue');
             
             const content = response.choices[0].message.content;
-            console.log('📄 Contenu brut reçu:', content.substring(0, 200) + '...');
+            console.log('📄 Contenu brut reçu:', content.substring(0, 500) + '...');
             
             const cleanedContent = content.replace(/```json\n?|\n?```/g, '').trim();
-            console.log('🧹 Contenu nettoyé:', cleanedContent.substring(0, 200) + '...');
+            console.log('🧹 Contenu nettoyé:', cleanedContent.substring(0, 500) + '...');
             
-            const parsedResponse = JSON.parse(cleanedContent);
-            console.log('✅ JSON parsé avec succès');
-
-            console.log('✅ Analyse terminée avec succès');
-            return parsedResponse;
+            try {
+                const parsedResponse = JSON.parse(cleanedContent);
+                console.log('✅ JSON parsé avec succès');
+                console.log('📊 Structure de la réponse:', Object.keys(parsedResponse));
+                
+                console.log('✅ Analyse terminée avec succès');
+                return parsedResponse;
+            } catch (parseError) {
+                console.error('❌ Erreur parsing JSON:', parseError);
+                console.error('❌ Contenu qui pose problème:', cleanedContent);
+                
+                // Essayer de réparer le JSON
+                try {
+                    const fixedContent = cleanedContent
+                        .replace(/,\s*}/g, '}')  // Virgules trailing
+                        .replace(/,\s*]/g, ']')  // Virgules trailing dans arrays
+                        .replace(/([a-zA-Z_]+):/g, '"$1":')  // Ajouter quotes aux clés
+                        .replace(/:\s*([^"][^,}\]]*[^,}\]])/g, ':"$1"');  // Ajouter quotes aux valeurs
+                    
+                    const parsedResponse = JSON.parse(fixedContent);
+                    console.log('✅ JSON réparé et parsé avec succès');
+                    return parsedResponse;
+                } catch (fixError) {
+                    console.error('❌ Impossible de réparer le JSON:', fixError);
+                    throw new Error('Réponse OpenAI invalide - JSON malformé');
+                }
+            }
 
         } catch (error) {
             console.error('❌ Erreur analyse images:', error);
