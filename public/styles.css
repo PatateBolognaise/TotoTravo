@@ -1070,3 +1070,339 @@ body {
 .mt-3 { margin-top: var(--spacing-lg); }
 .mt-4 { margin-top: var(--spacing-xl); }
 
+/* Cost Breakdown Section */
+.cost-breakdown-section {
+    margin-bottom: var(--spacing-xl);
+}
+
+.cost-breakdown-section h3 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-xl);
+    text-align: center;
+}
+
+.cost-breakdown-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--spacing-lg);
+}
+
+.cost-item {
+    background: var(--bg-secondary);
+    padding: var(--spacing-lg);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-sm);
+    text-align: center;
+    transition: var(--transition-normal);
+    border: 1px solid var(--border-color);
+}
+
+.cost-item:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-md);
+}
+
+.cost-item i {
+    font-size: 2rem;
+    color: var(--primary-color);
+    margin-bottom: var(--spacing-md);
+}
+
+.cost-item h4 {
+    font-size: 1.1rem;
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-sm);
+    font-weight: 600;
+}
+
+.cost-value {
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: var(--primary-color);
+}
+
+/* Planning Section */
+.planning-section {
+    margin-bottom: var(--spacing-xl);
+}
+
+.planning-section h3 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-xl);
+    text-align: center;
+}
+
+.planning-phases {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: var(--spacing-lg);
+}
+
+.planning-phase {
+    background: var(--bg-secondary);
+    padding: var(--spacing-xl);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-sm);
+    border-left: 4px solid var(--primary-color);
+    border: 1px solid var(--border-color);
+}
+
+.planning-phase h4 {
+    font-size: 1.3rem;
+    color: var(--primary-color);
+    margin-bottom: var(--spacing-md);
+    font-weight: 600;
+}
+
+.planning-phase p {
+    color: var(--text-primary);
+    line-height: 1.6;
+}
+
+/* Alternatives Section */
+.alternatives-section {
+    margin-bottom: var(--spacing-xl);
+}
+
+.alternatives-section h3 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-xl);
+    text-align: center;
+}
+
+.alternatives-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: var(--spacing-lg);
+}
+
+.alternative-card {
+    background: var(--bg-secondary);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-sm);
+    padding: var(--spacing-xl);
+    transition: var(--transition-normal);
+    border: 1px solid var(--border-color);
+}
+
+.alternative-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-md);
+}
+
+.alternative-card h4 {
+    font-size: 1.4rem;
+    color: var(--primary-color);
+    margin-bottom: var(--spacing-md);
+    font-weight: 600;
+}
+
+.alternative-description {
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-md);
+    line-height: 1.6;
+}
+
+.alternative-cost {
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: var(--primary-color);
+    margin-bottom: var(--spacing-lg);
+    text-align: center;
+    padding: var(--spacing-md);
+    background: var(--bg-tertiary);
+    border-radius: var(--border-radius);
+}
+
+.alternative-pros-cons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-md);
+}
+
+.pros, .cons {
+    padding: var(--spacing-md);
+    border-radius: var(--border-radius);
+}
+
+.pros {
+    background: rgba(16, 185, 129, 0.1);
+    border-left: 3px solid #10b981;
+}
+
+.cons {
+    background: rgba(239, 68, 68, 0.1);
+    border-left: 3px solid #ef4444;
+}
+
+.pros h5, .cons h5 {
+    font-size: 1rem;
+    margin-bottom: var(--spacing-sm);
+    font-weight: 600;
+}
+
+.pros h5 {
+    color: #10b981;
+}
+
+.cons h5 {
+    color: #ef4444;
+}
+
+.pros ul, .cons ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.pros li, .cons li {
+    font-size: 0.9rem;
+    margin-bottom: var(--spacing-xs);
+    padding-left: var(--spacing-md);
+    position: relative;
+}
+
+.pros li:before {
+    content: "✓";
+    position: absolute;
+    left: 0;
+    color: #10b981;
+    font-weight: bold;
+}
+
+.cons li:before {
+    content: "✗";
+    position: absolute;
+    left: 0;
+    color: #ef4444;
+    font-weight: bold;
+}
+
+/* Safety Section */
+.safety-section {
+    margin-bottom: var(--spacing-xl);
+}
+
+.safety-section h3 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-xl);
+    text-align: center;
+}
+
+.safety-list {
+    background: var(--bg-secondary);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-sm);
+    padding: var(--spacing-xl);
+    border: 1px solid var(--border-color);
+}
+
+.safety-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    padding: var(--spacing-md) 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.safety-item:last-child {
+    border-bottom: none;
+}
+
+.safety-item i {
+    color: #f59e0b;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+
+.safety-item span {
+    color: var(--text-primary);
+    line-height: 1.6;
+}
+
+/* Enhanced Piece Details */
+.piece-materials, .piece-trades, .piece-advice {
+    margin-top: var(--spacing-lg);
+    padding-top: var(--spacing-lg);
+    border-top: 1px solid var(--border-color);
+}
+
+.piece-materials h5, .piece-trades h5, .piece-advice h5 {
+    font-size: 1rem;
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-sm);
+    font-weight: 600;
+}
+
+.piece-materials ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.piece-materials li {
+    padding: var(--spacing-xs) 0;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.piece-materials li:before {
+    content: "•";
+    color: var(--primary-color);
+    font-weight: bold;
+    margin-right: var(--spacing-sm);
+}
+
+.trades-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-sm);
+}
+
+.trade-tag {
+    background: var(--primary-color);
+    color: var(--text-white);
+    padding: var(--spacing-xs) var(--spacing-md);
+    border-radius: 15px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.piece-advice p {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    line-height: 1.5;
+    font-style: italic;
+}
+
+/* Responsive Design for New Sections */
+@media (max-width: 768px) {
+    .cost-breakdown-grid {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    }
+    
+    .planning-phases {
+        grid-template-columns: 1fr;
+    }
+    
+    .alternatives-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .alternative-pros-cons {
+        grid-template-columns: 1fr;
+    }
+    
+    .trades-tags {
+        justify-content: center;
+    }
+}
+

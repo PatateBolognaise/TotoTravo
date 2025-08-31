@@ -480,9 +480,17 @@ const ResultsManager = {
                     </div>
                 </div>
 
+                ${analysis.decomposition_couts ? ResultsManager.renderCostBreakdown(analysis.decomposition_couts) : ''}
+                
                 ${analysis.pieces ? ResultsManager.renderPieces(analysis.pieces) : ''}
                 
+                ${analysis.planning_travaux ? ResultsManager.renderPlanning(analysis.planning_travaux) : ''}
+                
+                ${analysis.alternatives ? ResultsManager.renderAlternatives(analysis.alternatives) : ''}
+                
                 ${analysis.conseils ? ResultsManager.renderAdvice(analysis.conseils) : ''}
+                
+                ${analysis.recommandations_securite ? ResultsManager.renderSafety(analysis.recommandations_securite) : ''}
             `;
             
             console.log('✅ Résultats affichés avec succès');
@@ -517,9 +525,117 @@ const ResultsManager = {
                                 <div class="piece-info">
                                     <span><strong>Surface:</strong> ${piece.surface || 'N/A'}</span>
                                     <span><strong>Coût estimé:</strong> ${piece.cout_estime || 'N/A'}</span>
+                                    ${piece.duree_estimee ? `<span><strong>Durée:</strong> ${piece.duree_estimee}</span>` : ''}
                                 </div>
                                 <div class="piece-description">
+                                    <p><strong>Travaux nécessaires:</strong></p>
                                     <p>${piece.travaux_necessaires || 'Aucune information disponible'}</p>
+                                </div>
+                                ${piece.materiaux_principaux ? `
+                                    <div class="piece-materials">
+                                        <p><strong>Matériaux principaux:</strong></p>
+                                        <ul>${piece.materiaux_principaux.map(m => `<li>${m}</li>`).join('')}</ul>
+                                    </div>
+                                ` : ''}
+                                ${piece.corps_metier ? `
+                                    <div class="piece-trades">
+                                        <p><strong>Corps de métier:</strong></p>
+                                        <div class="trades-tags">
+                                            ${piece.corps_metier.map(trade => `<span class="trade-tag">${trade}</span>`).join('')}
+                                        </div>
+                                    </div>
+                                ` : ''}
+                                ${piece.conseils_specifiques ? `
+                                    <div class="piece-advice">
+                                        <p><strong>Conseils spécifiques:</strong></p>
+                                        <p>${piece.conseils_specifiques}</p>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    },
+
+    renderCostBreakdown: (decomposition) => {
+        if (!decomposition) return '';
+        
+        return `
+            <div class="cost-breakdown-section">
+                <h3>💰 Décomposition des coûts</h3>
+                <div class="cost-breakdown-grid">
+                    <div class="cost-item">
+                        <i class="fas fa-hammer"></i>
+                        <h4>Matériaux</h4>
+                        <div class="cost-value">${decomposition.materiaux || 'N/A'}</div>
+                    </div>
+                    <div class="cost-item">
+                        <i class="fas fa-user-tie"></i>
+                        <h4>Main d'œuvre</h4>
+                        <div class="cost-value">${decomposition.main_oeuvre || 'N/A'}</div>
+                    </div>
+                    <div class="cost-item">
+                        <i class="fas fa-tools"></i>
+                        <h4>Outillage</h4>
+                        <div class="cost-value">${decomposition.outillage || 'N/A'}</div>
+                    </div>
+                    <div class="cost-item">
+                        <i class="fas fa-trash"></i>
+                        <h4>Déchets</h4>
+                        <div class="cost-value">${decomposition.dechets || 'N/A'}</div>
+                    </div>
+                    <div class="cost-item">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <h4>Imprévus</h4>
+                        <div class="cost-value">${decomposition.imprevus || 'N/A'}</div>
+                    </div>
+                </div>
+            </div>
+        `;
+    },
+
+    renderPlanning: (planning) => {
+        if (!planning) return '';
+        
+        const phases = Object.entries(planning).map(([phase, description]) => `
+            <div class="planning-phase">
+                <h4>${phase.replace('phase_', 'Phase ').toUpperCase()}</h4>
+                <p>${description}</p>
+            </div>
+        `).join('');
+        
+        return `
+            <div class="planning-section">
+                <h3>📅 Planning des travaux</h3>
+                <div class="planning-phases">
+                    ${phases}
+                </div>
+            </div>
+        `;
+    },
+
+    renderAlternatives: (alternatives) => {
+        if (!Array.isArray(alternatives) || alternatives.length === 0) return '';
+        
+        return `
+            <div class="alternatives-section">
+                <h3>🔄 Alternatives possibles</h3>
+                <div class="alternatives-grid">
+                    ${alternatives.map(alt => `
+                        <div class="alternative-card">
+                            <h4>${alt.option}</h4>
+                            <p class="alternative-description">${alt.description}</p>
+                            <div class="alternative-cost">${alt.cout}</div>
+                            <div class="alternative-pros-cons">
+                                <div class="pros">
+                                    <h5>Avantages</h5>
+                                    <ul>${alt.avantages?.map(a => `<li>${a}</li>`).join('') || ''}</ul>
+                                </div>
+                                <div class="cons">
+                                    <h5>Inconvénients</h5>
+                                    <ul>${alt.inconvenients?.map(i => `<li>${i}</li>`).join('') || ''}</ul>
                                 </div>
                             </div>
                         </div>
@@ -539,6 +655,24 @@ const ResultsManager = {
                 <h3>💡 Conseils personnalisés</h3>
                 <div class="advice-content">
                     <p>${conseils}</p>
+                </div>
+            </div>
+        `;
+    },
+
+    renderSafety: (recommandations) => {
+        if (!Array.isArray(recommandations) || recommandations.length === 0) return '';
+        
+        return `
+            <div class="safety-section">
+                <h3>⚠️ Recommandations de sécurité</h3>
+                <div class="safety-list">
+                    ${recommandations.map(rec => `
+                        <div class="safety-item">
+                            <i class="fas fa-shield-alt"></i>
+                            <span>${rec}</span>
+                        </div>
+                    `).join('')}
                 </div>
             </div>
         `;

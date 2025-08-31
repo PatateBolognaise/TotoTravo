@@ -261,7 +261,7 @@ class AnalysisService {
                 };
             });
 
-            const prompt = `Tu es un expert artisan en rénovation immobilière avec 30 ans d'expérience. Analyse ces images et fournis une analyse complète et détaillée. Réponds UNIQUEMENT avec un objet JSON valide.
+            const prompt = `Tu es un expert artisan en rénovation immobilière avec 30 ans d'expérience, spécialisé dans l'estimation de travaux. Tu as une expertise approfondie en maçonnerie, électricité, plomberie, menuiserie, peinture et finitions. Analyse ces images avec un œil professionnel et fournis une estimation détaillée et réaliste.
 
 PROFIL UTILISATEUR:
 ${JSON.stringify(userProfile, null, 2)}
@@ -269,27 +269,78 @@ ${JSON.stringify(userProfile, null, 2)}
 DESCRIPTION DU PROJET:
 ${description || 'Aucune description fournie'}
 
-FORMAT JSON:
+INSTRUCTIONS D'ANALYSE:
+1. Examine chaque image en détail pour identifier :
+   - L'état des murs, sols, plafonds
+   - Les installations électriques et sanitaires
+   - Les menuiseries (portes, fenêtres)
+   - Les finitions existantes
+   - Les défauts et problèmes visibles
+
+2. Estime avec précision :
+   - Les surfaces à traiter (murs, sols, plafonds)
+   - Les matériaux nécessaires
+   - La main d'œuvre requise
+   - Les contraintes techniques
+
+3. Fournis des conseils personnalisés basés sur :
+   - Le niveau de bricolage de l'utilisateur
+   - Le budget disponible
+   - Le délai souhaité
+   - Le type de projet
+
+FORMAT JSON DÉTAILLÉ:
 {
   "analyse_globale": {
-    "surface_totale": "XX m²",
-    "duree_estimee": "X semaines",
-    "cout_total_estime": "XXXX €",
-    "complexite": "facile/moyen/complexe"
+    "surface_totale": "XX-XX m² (estimation précise)",
+    "duree_estimee": "X-X semaines (avec marge)",
+    "cout_total_estime": "XXXX-XXXX € (fourchette réaliste)",
+    "complexite": "facile/moyen/complexe/très complexe",
+    "priorites_travaux": ["Liste des travaux prioritaires"],
+    "risques_identifies": ["Risques techniques identifiés"],
+    "permis_necessaires": ["Permis ou autorisations requises"]
   },
   "pieces": [
     {
-      "nom": "Nom de la pièce",
-      "surface": "XX m²",
+      "nom": "Nom précis de la pièce",
+      "surface": "XX-XX m²",
       "etat_general": "excellent/bon/moyen/mauvais/critique",
-      "travaux_necessaires": "Description des travaux",
-      "cout_estime": "XXX €"
+      "travaux_necessaires": "Description détaillée des travaux par corps de métier",
+      "cout_estime": "XXXX-XXXX €",
+      "duree_estimee": "X-X semaines",
+      "materiaux_principaux": ["Liste des matériaux nécessaires"],
+      "corps_metier": ["Maçonnerie", "Électricité", "Plomberie", "Menuiserie", "Peinture"],
+      "contraintes_techniques": ["Contraintes spécifiques identifiées"],
+      "conseils_specifiques": "Conseils adaptés à cette pièce"
     }
   ],
-  "conseils": "Conseils personnalisés"
+  "decomposition_couts": {
+    "materiaux": "XXXX-XXXX €",
+    "main_oeuvre": "XXXX-XXXX €",
+    "outillage": "XXX-XXX €",
+    "dechets": "XXX-XXX €",
+    "imprevus": "XXX-XXX €"
+  },
+  "planning_travaux": {
+    "phase_1": "Description et durée",
+    "phase_2": "Description et durée",
+    "phase_3": "Description et durée"
+  },
+  "conseils": "Conseils personnalisés détaillés basés sur le profil utilisateur et les contraintes identifiées",
+  "alternatives": [
+    {
+      "option": "Option économique",
+      "description": "Description de l'option",
+      "cout": "XXXX-XXXX €",
+      "avantages": ["Avantages"],
+      "inconvenients": ["Inconvénients"]
+    }
+  ],
+  "recommandations_securite": ["Recommandations de sécurité importantes"],
+  "garanties_necessaires": ["Garanties à prévoir"]
 }
 
-Réponds UNIQUEMENT avec le JSON valide.`;
+IMPORTANT: Sois très précis dans tes estimations. Utilise des fourchettes réalistes. Détaille chaque corps de métier. Donne des conseils pratiques et personnalisés. Réponds UNIQUEMENT avec le JSON valide.`;
 
             console.log('🤖 Envoi de la requête à OpenAI...');
             
